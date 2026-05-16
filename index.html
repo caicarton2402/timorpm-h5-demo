@@ -117,6 +117,14 @@
             </div>
 
             <div class="grid grid-cols-4 gap-4 mb-8">
+                <div onclick="switchPage('upload')" class="flex flex-col items-center gap-2 btn-active">
+                    <div class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-xl">📸</div>
+                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Inspect</span>
+                </div>
+                <div onclick="switchPage('approval')" class="flex flex-col items-center gap-2 btn-active">
+                    <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-xl">⚖️</div>
+                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Approve</span>
+                </div>
                 <div onclick="switchPage('team')" class="flex flex-col items-center gap-2 btn-active">
                     <div class="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center text-xl">👥</div>
                     <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Team</span>
@@ -126,8 +134,20 @@
                     <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Risks</span>
                 </div>
                 <div onclick="switchPage('charts')" class="flex flex-col items-center gap-2 btn-active">
-                    <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-xl">📊</div>
+                    <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-xl">📊</div>
                     <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Stats</span>
+                </div>
+                <div onclick="switchPage('budget')" class="flex flex-col items-center gap-2 btn-active">
+                    <div class="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-xl">💰</div>
+                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Budget</span>
+                </div>
+                <div onclick="switchPage('tasks')" class="flex flex-col items-center gap-2 btn-active">
+                    <div class="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-xl">📝</div>
+                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Tasks</span>
+                </div>
+                <div onclick="switchPage('gis')" class="flex flex-col items-center gap-2 btn-active">
+                    <div class="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center text-xl">🗺️</div>
+                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">GIS Map</span>
                 </div>
                 <div onclick="switchPage('settings')" class="flex flex-col items-center gap-2 btn-active">
                     <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-xl">⚙️</div>
@@ -556,6 +576,56 @@
             <button onclick="switchPage('home')" class="w-full mt-8 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Back to Dashboard</button>
         </div>
 
+        <!-- 16. GIS 地图总览 GIS MAP -->
+        <div id="page-gis" class="page">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Strategic GIS Map</h2>
+            <div class="bg-white p-4 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden mb-6">
+                <!-- 模拟地图背景 -->
+                <div class="w-full aspect-square bg-slate-50 rounded-3xl relative overflow-hidden border border-slate-100">
+                    <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#0d5c63 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    
+                    <!-- 模拟东帝汶地图形状 (SVG) -->
+                    <svg viewBox="0 0 200 100" class="absolute inset-0 w-full h-full opacity-10">
+                        <path d="M20,50 Q40,30 80,40 T140,30 T180,60 T140,80 T80,70 T20,50" fill="#0d5c63" />
+                    </svg>
+
+                    <!-- 地图上的交互点 -->
+                    <div onclick="showToast('Dili: 4 Active Projects')" class="absolute top-[35%] left-[45%] w-6 h-6 flex items-center justify-center btn-active">
+                        <div class="w-3 h-3 bg-teal-600 rounded-full animate-ping opacity-75"></div>
+                        <div class="absolute w-3 h-3 bg-teal-600 rounded-full border-2 border-white shadow-sm"></div>
+                    </div>
+                    <div onclick="showToast('Baucau: 2 Active Projects')" class="absolute top-[30%] left-[65%] w-6 h-6 flex items-center justify-center btn-active">
+                        <div class="w-3 h-3 bg-teal-600 rounded-full border-2 border-white shadow-sm"></div>
+                    </div>
+                    <div onclick="showToast('Suai: 3 Active Projects')" class="absolute top-[70%] left-[30%] w-6 h-6 flex items-center justify-center btn-active">
+                        <div class="w-3 h-3 bg-orange-500 rounded-full border-2 border-white shadow-sm"></div>
+                    </div>
+                    <div onclick="showToast('Oecusse: Special Zone')" class="absolute top-[55%] left-[10%] w-6 h-6 flex items-center justify-center btn-active">
+                        <div class="w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow-sm"></div>
+                    </div>
+
+                    <!-- 图例 -->
+                    <div class="absolute bottom-4 left-4 bg-white/80 backdrop-blur p-3 rounded-2xl border border-slate-100 text-[8px] font-bold space-y-1">
+                        <div class="flex items-center gap-2"><span class="w-2 h-2 bg-teal-600 rounded-full"></span> Infrastructure</div>
+                        <div class="flex items-center gap-2"><span class="w-2 h-2 bg-orange-500 rounded-full"></span> Energy</div>
+                        <div class="flex items-center gap-2"><span class="w-2 h-2 bg-blue-500 rounded-full"></span> Health</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="space-y-3">
+                <div class="bg-white p-5 rounded-3xl border border-slate-50 flex items-center justify-between shadow-sm">
+                    <span class="text-xs font-bold text-slate-700">Display Satellite Imagery</span>
+                    <div class="w-10 h-5 bg-teal-600 rounded-full relative"><div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div></div>
+                </div>
+                <div class="bg-white p-5 rounded-3xl border border-slate-50 flex items-center justify-between shadow-sm">
+                    <span class="text-xs font-bold text-slate-700">Population Heatmap</span>
+                    <div class="w-10 h-5 bg-slate-200 rounded-full relative"><div class="absolute left-1 top-1 w-3 h-3 bg-white rounded-full"></div></div>
+                </div>
+            </div>
+            <button onclick="switchPage('home')" class="w-full mt-6 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Back to Dashboard</button>
+        </div>
+
     </main>
 
     <!-- 底部固定导航 -->
@@ -645,11 +715,11 @@
             <button onclick="switchPage('new-project')" class="flex flex-col items-center gap-2 p-4 bg-teal-50 rounded-[2rem] btn-active">
                 <span class="text-3xl">📁</span><span class="text-[10px] font-bold uppercase">Project</span>
             </button>
-            <button onclick="switchPage('team')" class="flex flex-col items-center gap-2 p-4 bg-purple-50 rounded-[2rem] btn-active">
-                <span class="text-3xl">👥</span><span class="text-[10px] font-bold uppercase">Team</span>
+            <button onclick="switchPage('upload')" class="flex flex-col items-center gap-2 p-4 bg-orange-50 rounded-[2rem] btn-active">
+                <span class="text-3xl">📸</span><span class="text-[10px] font-bold uppercase">Inspection</span>
             </button>
-            <button onclick="switchPage('budget')" class="flex flex-col items-center gap-2 p-4 bg-blue-50 rounded-[2rem] btn-active">
-                <span class="text-3xl">💰</span><span class="text-[10px] font-bold uppercase">Budget</span>
+            <button onclick="switchPage('approval')" class="flex flex-col items-center gap-2 p-4 bg-blue-50 rounded-[2rem] btn-active">
+                <span class="text-3xl">⚖️</span><span class="text-[10px] font-bold uppercase">Approval</span>
             </button>
             <button onclick="switchPage('risks')" class="flex flex-col items-center gap-2 p-4 bg-red-50 rounded-[2rem] btn-active">
                 <span class="text-3xl">🚨</span><span class="text-[10px] font-bold uppercase">Risks</span>
