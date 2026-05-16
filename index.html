@@ -8,57 +8,753 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
-        :root { --primary: #0d5c63; --primary-light: #15848f; --accent: #d4af37; --bg: #f3f7f7; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); -webkit-user-select: none; user-select: none; }
-        .page { display: none; min-height: calc(100vh - 160px); }
-        .page.active { display: block; animation: pageFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        @keyframes pageFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        
+        :root {
+            --primary: #0d5c63;
+            --primary-light: #15848f;
+            --accent: #d4af37;
+            --bg: #f3f7f7;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* 页面切换逻辑 */
+        .page {
+            display: none;
+            min-height: calc(100vh - 160px);
+        }
+        .page.active {
+            display: block;
+            animation: pageFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes pageFadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 磨砂玻璃效果 */
+        .glass {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* 隐藏滚动条 */
         .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* 按钮点击态 */
         .btn-active:active { transform: scale(0.95); opacity: 0.8; }
-        #detail-view { position: fixed; top: 0; left: 100%; width: 100%; height: 100%; background: var(--bg); z-index: 100; transition: left 0.3s ease-out; overflow-y: auto; }
+
+        /* 详情页滑出层 */
+        #detail-view {
+            position: fixed;
+            top: 0;
+            left: 100%;
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            z-index: 100;
+            transition: left 0.3s ease-out;
+            overflow-y: auto;
+        }
         #detail-view.open { left: 0; }
+
         .nav-item.active { color: var(--primary); }
+        .nav-item.active i { background: #e0f2f1; border-radius: 12px; }
     </style>
 </head>
 <body class="max-w-md mx-auto relative overflow-x-hidden">
+
+    <!-- 顶部状态栏 -->
     <header class="sticky top-0 z-40 glass border-b border-teal-100/50 px-6 py-4 flex items-center justify-between">
-        <div><h1 class="text-xl font-extrabold text-[#0d5c63] flex items-center gap-2"><span class="w-2 h-6 bg-[#d4af37] rounded-full"></span>TimorPM</h1></div>
+        <div>
+            <h1 class="text-xl font-extrabold text-[#0d5c63] flex items-center gap-2">
+                <span class="w-2 h-6 bg-[#d4af37] rounded-full"></span>TimorPM
+            </h1>
+        </div>
         <div class="flex items-center gap-4">
-            <button onclick="alert('Notification')" class="relative"><span>🔔</span></button>
-            <div class="w-9 h-9 rounded-xl bg-teal-800 border-2 border-teal-100 overflow-hidden"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"></div>
+            <button onclick="switchPage('notifications')" class="relative btn-active">
+                <span class="text-xl">🔔</span>
+                <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+            </button>
+            <button onclick="switchPage('profile')" class="w-9 h-9 rounded-xl bg-teal-800 border-2 border-teal-100 overflow-hidden btn-active">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="user">
+            </button>
         </div>
     </header>
+
+    <!-- 主容器 -->
     <main class="px-6 pt-4 pb-24">
+
+        <!-- 1. 首页 DASHBOARD -->
         <div id="page-home" class="page active">
-            <div class="mb-6"><p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Welcome back</p><h2 class="text-2xl font-bold text-slate-800">Sr. Administrador</h2></div>
-            <div class="grid grid-cols-2 gap-4 mb-8">
-                <div class="bg-gradient-to-br from-[#0d5c63] to-[#15848f] p-5 rounded-[2rem] text-white shadow-xl"><p class="text-teal-100/70 text-[10px] font-bold uppercase mb-4">Active Projects</p><div class="flex items-end justify-between"><span class="text-4xl font-bold">14</span></div></div>
-                <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm"><p class="text-slate-400 text-[10px] font-bold uppercase mb-4">Budget Used</p><div class="flex items-end justify-between"><span class="text-2xl font-bold text-slate-800">68%</span></div></div>
+            <div class="mb-6">
+                <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Welcome back</p>
+                <h2 class="text-2xl font-bold text-slate-800">Sr. Administrador</h2>
             </div>
-            <h3 class="font-bold text-slate-800 mb-4">Priority Track</h3>
-            <div onclick="document.getElementById('detail-view').classList.add('open')" class="bg-white p-5 rounded-3xl border border-slate-50 shadow-sm">
-                <div class="flex justify-between items-start mb-4"><div class="flex items-center gap-3"><div class="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center text-2xl">🏗️</div><div><h4 class="font-bold text-slate-800">Port of Tibar</h4><p class="text-[10px] text-slate-400 font-bold uppercase">Logistics Hub</p></div></div></div>
-                <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-teal-600 h-full w-[82%]"></div></div>
+
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-gradient-to-br from-[#0d5c63] to-[#15848f] p-5 rounded-[2rem] text-white shadow-xl">
+                    <p class="text-teal-100/70 text-[10px] font-bold uppercase mb-4">Active Projects</p>
+                    <div class="flex items-end justify-between">
+                        <span class="text-4xl font-bold">14</span>
+                        <span class="text-[10px] bg-white/20 px-2 py-1 rounded-lg">↑ 12%</span>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm">
+                    <p class="text-slate-400 text-[10px] font-bold uppercase mb-4">Budget Used</p>
+                    <div class="flex items-end justify-between">
+                        <span class="text-2xl font-bold text-slate-800">68%</span>
+                        <div class="w-8 h-8 rounded-full border-4 border-teal-500 border-t-transparent animate-spin-slow"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-4 gap-4 mb-8">
+                <div onclick="switchPage('team')" class="flex flex-col items-center gap-2 btn-active">
+                    <div class="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center text-xl">👥</div>
+                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Team</span>
+                </div>
+                <div onclick="switchPage('risks')" class="flex flex-col items-center gap-2 btn-active">
+                    <div class="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center text-xl">🚨</div>
+                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Risks</span>
+                </div>
+                <div onclick="switchPage('charts')" class="flex flex-col items-center gap-2 btn-active">
+                    <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-xl">📊</div>
+                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Stats</span>
+                </div>
+                <div onclick="switchPage('settings')" class="flex flex-col items-center gap-2 btn-active">
+                    <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-xl">⚙️</div>
+                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">More</span>
+                </div>
+            </div>
+
+            <h3 class="font-bold text-slate-800 mb-4 flex items-center justify-between">
+                Priority Track <button class="text-teal-600 text-xs" onclick="switchPage('projects')">View All</button>
+            </h3>
+
+            <div class="space-y-4">
+                <div onclick="openDetail('Port of Tibar')" class="bg-white p-5 rounded-3xl border border-slate-50 shadow-sm btn-active">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center text-2xl">🏗️</div>
+                            <div>
+                                <h4 class="font-bold text-slate-800">Port of Tibar</h4>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase">Logistics Hub</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-bold text-teal-600 bg-teal-50 px-3 py-1 rounded-full italic">On Track</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-teal-600 h-full w-[82%]"></div>
+                    </div>
+                    <div class="mt-2 flex justify-between text-[10px] font-bold text-slate-400">
+                        <span>Phase 4/5</span>
+                        <span>82%</span>
+                    </div>
+                </div>
+
+                <div onclick="openDetail('Dili Water Supply')" class="bg-white p-5 rounded-3xl border border-slate-50 shadow-sm btn-active">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-2xl">💧</div>
+                            <div>
+                                <h4 class="font-bold text-slate-800">Dili Water Supply</h4>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase">Infrastructure</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-bold text-orange-600 bg-orange-50 px-3 py-1 rounded-full italic">Delayed</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-orange-500 h-full w-[45%]"></div>
+                    </div>
+                    <div class="mt-2 flex justify-between text-[10px] font-bold text-slate-400">
+                        <span>Phase 2/5</span>
+                        <span>45%</span>
+                    </div>
+                </div>
             </div>
         </div>
-    </main>
-    <div id="detail-view">
-        <div class="p-6 bg-white min-h-screen">
-            <button onclick="document.getElementById('detail-view').classList.remove('open')" class="mb-6 text-2xl">← Back</button>
-            <h2 class="text-2xl font-bold mb-4 text-[#0d5c63]">Project Details: Port of Tibar</h2>
-            <div class="space-y-4">
-                <div class="bg-slate-50 p-4 rounded-2xl"><p class="font-bold">Status: On Track (82%)</p></div>
-                <div class="bg-slate-50 p-4 rounded-2xl"><p class="font-bold">Next Milestone: Equipment Installation</p></div>
+
+        <!-- 2. 项目列表 PROJECTS -->
+        <div id="page-projects" class="page">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Projects Registry</h2>
+            <div class="relative mb-6">
+                <input type="text" placeholder="Search projects..." class="w-full bg-white border border-slate-100 rounded-2xl py-4 px-6 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm">
+                <span class="absolute right-5 top-4">🔍</span>
             </div>
+            
+            <div class="flex gap-2 mb-6 overflow-x-auto no-scrollbar">
+                <button class="bg-teal-700 text-white px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-lg">All</button>
+                <button class="bg-white text-slate-500 border border-slate-100 px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">High Budget</button>
+                <button class="bg-white text-slate-500 border border-slate-100 px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Infrastructure</button>
+                <button class="bg-white text-slate-500 border border-slate-100 px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Completed</button>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+                <!-- 循环示例 -->
+                <div class="bg-white p-5 rounded-[2.5rem] border border-slate-50 shadow-sm" onclick="openDetail('South Coast Highway')">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-14 h-14 bg-blue-50 rounded-3xl flex items-center justify-center text-2xl">🛣️</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800">South Coast Highway</h4>
+                            <p class="text-xs text-slate-400">Budget: $240,000,000</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <span class="text-[9px] font-extrabold uppercase bg-slate-100 px-3 py-1 rounded-lg">Transport</span>
+                        <span class="text-[9px] font-extrabold uppercase bg-slate-100 px-3 py-1 rounded-lg">Active</span>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-[2.5rem] border border-slate-50 shadow-sm" onclick="openDetail('Baucau Airport')">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-14 h-14 bg-indigo-50 rounded-3xl flex items-center justify-center text-2xl">✈️</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800">Baucau Airport Upgrade</h4>
+                            <p class="text-xs text-slate-400">Budget: $15,800,000</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <span class="text-[9px] font-extrabold uppercase bg-slate-100 px-3 py-1 rounded-lg">Aviation</span>
+                        <span class="text-[9px] font-extrabold uppercase bg-slate-100 px-3 py-1 rounded-lg">Planning</span>
+                    </div>
+                </div>
+            </div>
+            <button onclick="switchPage('new-project')" class="w-full mt-6 py-4 bg-teal-700 text-white rounded-3xl font-bold shadow-lg btn-active">+ Create New Project</button>
+        </div>
+
+        <!-- 3. 任务页面 TASKS -->
+        <div id="page-tasks" class="page">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">Daily Tasks</h2>
+                <button onclick="switchPage('new-task')" class="w-10 h-10 bg-teal-700 text-white rounded-xl flex items-center justify-center text-xl shadow-lg btn-active">＋</button>
+            </div>
+
+            <div class="space-y-4">
+                <div onclick="toggleTask(this)" class="flex items-center gap-4 bg-white p-5 rounded-3xl border border-slate-50 btn-active">
+                    <div class="w-7 h-7 rounded-full border-4 border-slate-100 check-circle transition-all"></div>
+                    <div class="flex-1">
+                        <h5 class="text-sm font-bold text-slate-700">Audit Tibar Port Q2 Expenses</h5>
+                        <p class="text-[10px] text-slate-400 uppercase font-bold">Priority: High</p>
+                    </div>
+                </div>
+                <div onclick="toggleTask(this)" class="flex items-center gap-4 bg-white p-5 rounded-3xl border border-slate-50 btn-active">
+                    <div class="w-7 h-7 rounded-full border-4 border-slate-100 check-circle transition-all"></div>
+                    <div class="flex-1">
+                        <h5 class="text-sm font-bold text-slate-700">Contractor Weekly Sync</h5>
+                        <p class="text-[10px] text-slate-400 uppercase font-bold">Priority: Medium</p>
+                    </div>
+                </div>
+                <div onclick="toggleTask(this)" class="flex items-center gap-4 bg-white p-5 rounded-3xl border border-slate-50 btn-active opacity-50">
+                    <div class="w-7 h-7 rounded-full border-4 bg-teal-500 border-teal-500 flex items-center justify-center text-white text-[10px]">✓</div>
+                    <div class="flex-1">
+                        <h5 class="text-sm font-bold text-slate-700 line-through">Draft Govt Budget Memo</h5>
+                        <p class="text-[10px] text-teal-600 uppercase font-bold">Completed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 统计页面 CHARTS -->
+        <div id="page-charts" class="page">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Strategic Analytics</h2>
+            
+            <!-- 模拟柱状图 -->
+            <div class="bg-white p-6 rounded-[2.5rem] shadow-sm mb-6 border border-slate-50">
+                <h4 class="text-xs font-bold text-slate-400 uppercase mb-8">Quarterly Spending (m$)</h4>
+                <div class="flex items-end justify-between h-40 px-4">
+                    <div class="flex flex-col items-center gap-2 w-8">
+                        <div class="w-full bg-slate-100 rounded-lg h-24 relative overflow-hidden">
+                            <div class="absolute bottom-0 w-full bg-teal-600 h-1/2 rounded-lg"></div>
+                        </div>
+                        <span class="text-[9px] font-bold text-slate-400">Q1</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 w-8">
+                        <div class="w-full bg-slate-100 rounded-lg h-32 relative overflow-hidden">
+                            <div class="absolute bottom-0 w-full bg-teal-600 h-3/4 rounded-lg"></div>
+                        </div>
+                        <span class="text-[9px] font-bold text-slate-400">Q2</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 w-8">
+                        <div class="w-full bg-slate-100 rounded-lg h-40 relative overflow-hidden">
+                            <div class="absolute bottom-0 w-full bg-[#d4af37] h-full rounded-lg animate-pulse"></div>
+                        </div>
+                        <span class="text-[9px] font-bold text-slate-400">Q3</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 w-8">
+                        <div class="w-full bg-slate-100 rounded-lg h-28 relative overflow-hidden">
+                            <div class="absolute bottom-0 w-full bg-teal-600 h-[60%] rounded-lg"></div>
+                        </div>
+                        <span class="text-[9px] font-bold text-slate-400">Q4</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <div onclick="showToast('Exporting CSV...')" class="bg-white p-4 rounded-2xl flex items-center justify-between border border-slate-50 btn-active">
+                    <div class="flex items-center gap-3 font-bold text-sm text-slate-700 italic underline">
+                        <span>📊</span> Download Annual Review
+                    </div>
+                    <span class="text-teal-600">📥</span>
+                </div>
+                <div onclick="showToast('Exporting PDF...')" class="bg-white p-4 rounded-2xl flex items-center justify-between border border-slate-50 btn-active">
+                    <div class="flex items-center gap-3 font-bold text-sm text-slate-700 italic underline">
+                        <span>📄</span> Project Health Report
+                    </div>
+                    <span class="text-teal-600">📥</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. 更多页面 SETTINGS -->
+        <div id="page-settings" class="page">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">System Settings</h2>
+            <div class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm">
+                <div onclick="switchPage('team')" class="p-5 border-b border-slate-50 flex justify-between btn-active">
+                    <span class="text-sm font-bold text-slate-700">Team Management</span>
+                    <span class="text-teal-600 font-bold text-xs uppercase italic">42 Members</span>
+                </div>
+                <div onclick="switchPage('risks')" class="p-5 border-b border-slate-50 flex justify-between btn-active">
+                    <span class="text-sm font-bold text-slate-700">Risk Matrix</span>
+                    <span class="text-orange-600 font-bold text-xs uppercase italic">3 Alerts</span>
+                </div>
+                <div onclick="switchPage('profile')" class="p-5 border-b border-slate-50 flex justify-between btn-active">
+                    <span class="text-sm font-bold text-slate-700">User Profile</span>
+                    <span class="text-slate-300">❯</span>
+                </div>
+                <div onclick="switchPage('security')" class="p-5 border-b border-slate-50 flex justify-between btn-active">
+                    <span class="text-sm font-bold text-slate-700">Security & Privacy</span>
+                    <span class="text-slate-300">❯</span>
+                </div>
+                <div onclick="switchPage('notifications')" class="p-5 border-b border-slate-50 flex justify-between btn-active">
+                    <span class="text-sm font-bold text-slate-700">Notifications</span>
+                    <span class="text-slate-300">❯</span>
+                </div>
+                <div onclick="showToast('Language: English')" class="p-5 border-b border-slate-50 flex justify-between btn-active">
+                    <span class="text-sm font-bold text-slate-700">Language</span>
+                    <span class="text-teal-600 font-bold text-xs uppercase">Tetum/English</span>
+                </div>
+                <div onclick="location.reload()" class="p-5 flex justify-between btn-active">
+                    <span class="text-sm font-bold text-red-500">Logout Session</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. 人员管理 TEAM -->
+        <div id="page-team" class="page">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Team Directory</h2>
+            <div class="space-y-4">
+                <div class="bg-white p-4 rounded-3xl border border-slate-50 flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-4">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=John" class="w-12 h-12 rounded-xl bg-teal-50">
+                        <div>
+                            <h4 class="font-bold text-slate-800">Eng. José Ramos</h4>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Lead Site Manager</p>
+                        </div>
+                    </div>
+                    <span class="w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+                </div>
+                <div class="bg-white p-4 rounded-3xl border border-slate-50 flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-4">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Maria" class="w-12 h-12 rounded-xl bg-teal-50">
+                        <div>
+                            <h4 class="font-bold text-slate-800">Dra. Maria Guterres</h4>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Financial Auditor</p>
+                        </div>
+                    </div>
+                    <span class="w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+                </div>
+                <div class="bg-white p-4 rounded-3xl border border-slate-50 flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-4">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Peter" class="w-12 h-12 rounded-xl bg-teal-50">
+                        <div>
+                            <h4 class="font-bold text-slate-800">Peter Chen</h4>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Safety Inspector</p>
+                        </div>
+                    </div>
+                    <span class="w-3 h-3 bg-orange-400 rounded-full border-2 border-white"></span>
+                </div>
+            </div>
+            <button class="w-full mt-6 py-4 bg-teal-700 text-white rounded-3xl font-bold shadow-lg btn-active">+ Invite Member</button>
+            <button onclick="switchPage('settings')" class="w-full mt-3 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Back to Menu</button>
+        </div>
+
+        <!-- 7. 风险地图 RISKS -->
+        <div id="page-risks" class="page">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Risk Assessment</h2>
+            <div class="bg-white p-6 rounded-[2.5rem] border border-slate-50 shadow-sm mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase">Risk Level Overview</h4>
+                    <span class="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-lg">High Risk Environment</span>
+                </div>
+                <div class="flex gap-2 h-4 mb-6">
+                    <div class="flex-1 bg-red-500 rounded-full"></div>
+                    <div class="flex-[2] bg-orange-400 rounded-full"></div>
+                    <div class="flex-[3] bg-yellow-400 rounded-full"></div>
+                    <div class="flex-[4] bg-green-400 rounded-full"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="p-3 bg-red-50 rounded-2xl border border-red-100">
+                        <p class="text-[10px] font-bold text-red-600">CRITICAL</p>
+                        <p class="text-lg font-bold">02</p>
+                    </div>
+                    <div class="p-3 bg-orange-50 rounded-2xl border border-orange-100">
+                        <p class="text-[10px] font-bold text-orange-600">WARNING</p>
+                        <p class="text-lg font-bold">05</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="bg-white p-5 rounded-3xl border-l-4 border-red-500 shadow-sm">
+                    <h5 class="font-bold text-slate-800">Budget Overrun: Port of Tibar</h5>
+                    <p class="text-xs text-slate-400 mt-1">Material costs increased by 15% due to supply chain issues.</p>
+                </div>
+                <div class="bg-white p-5 rounded-3xl border-l-4 border-orange-400 shadow-sm">
+                    <h5 class="font-bold text-slate-800">Weather Delay: South Coast</h5>
+                    <p class="text-xs text-slate-400 mt-1">Heavy rainfall predicted for next 14 days. Construction paused.</p>
+                </div>
+            </div>
+            <button onclick="switchPage('settings')" class="w-full mt-8 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Back to Menu</button>
+        </div>
+
+        <!-- 8. 用户资料 PROFILE -->
+        <div id="page-profile" class="page">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">My Profile</h2>
+            <div class="bg-white p-8 rounded-[3rem] text-center shadow-sm border border-slate-50 mb-6">
+                <div class="w-24 h-24 mx-auto rounded-[2rem] bg-teal-800 border-4 border-white shadow-xl overflow-hidden mb-4">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="user">
+                </div>
+                <h3 class="text-xl font-bold text-slate-800">Sr. Administrador</h3>
+                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Director of Infrastructure</p>
+            </div>
+            <div class="space-y-3">
+                <div class="bg-white p-5 rounded-3xl border border-slate-100">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">Email Address</p>
+                    <p class="text-sm font-bold text-slate-700">admin@timorpm.gov.tl</p>
+                </div>
+                <div class="bg-white p-5 rounded-3xl border border-slate-100">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">Department</p>
+                    <p class="text-sm font-bold text-slate-700">Ministry of Public Works</p>
+                </div>
+            </div>
+            <button onclick="switchPage('settings')" class="w-full mt-8 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Back to Settings</button>
+        </div>
+
+        <!-- 9. 安全设置 SECURITY -->
+        <div id="page-security" class="page">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Security</h2>
+            <div class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm mb-6">
+                <div class="p-5 border-b border-slate-50 flex justify-between items-center">
+                    <span class="text-sm font-bold text-slate-700">Two-Factor Auth</span>
+                    <span class="text-teal-600 font-bold text-xs uppercase italic">Enabled</span>
+                </div>
+                <div class="p-5 border-b border-slate-50 flex justify-between items-center">
+                    <span class="text-sm font-bold text-slate-700">Change Password</span>
+                    <span class="text-slate-300">❯</span>
+                </div>
+                <div class="p-5 flex justify-between items-center">
+                    <span class="text-sm font-bold text-slate-700">Session History</span>
+                    <span class="text-slate-300">❯</span>
+                </div>
+            </div>
+            <button onclick="switchPage('settings')" class="w-full mt-4 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Back</button>
+        </div>
+
+        <!-- 10. 通知设置 NOTIFICATIONS -->
+        <div id="page-notifications" class="page">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Notifications</h2>
+            <div class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm mb-6">
+                <div class="p-5 border-b border-slate-50 flex justify-between items-center">
+                    <span class="text-sm font-bold text-slate-700">Email Alerts</span>
+                    <span class="text-teal-600 font-bold text-xs uppercase italic">On</span>
+                </div>
+                <div class="p-5 border-b border-slate-50 flex justify-between items-center">
+                    <span class="text-sm font-bold text-slate-700">Push Notifications</span>
+                    <span class="text-teal-600 font-bold text-xs uppercase italic">On</span>
+                </div>
+                <div class="p-5 flex justify-between items-center">
+                    <span class="text-sm font-bold text-slate-700">Weekly Reports</span>
+                    <span class="text-slate-300">❯</span>
+                </div>
+            </div>
+            <button onclick="switchPage('settings')" class="w-full mt-4 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Back</button>
+        </div>
+
+        <!-- 11. 新建项目 NEW PROJECT -->
+        <div id="page-new-project" class="page">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Create Project</h2>
+            <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-4">
+                <div>
+                    <label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Project Name</label>
+                    <input type="text" placeholder="e.g. Dili Airport Expansion" class="w-full bg-slate-50 border-0 rounded-2xl py-4 px-6 text-sm focus:ring-2 focus:ring-teal-500">
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Category</label>
+                    <select class="w-full bg-slate-50 border-0 rounded-2xl py-4 px-6 text-sm focus:ring-2 focus:ring-teal-500">
+                        <option>Infrastructure</option>
+                        <option>Education</option>
+                        <option>Health</option>
+                        <option>Energy</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Budget Allocation ($)</label>
+                    <input type="number" placeholder="0.00" class="w-full bg-slate-50 border-0 rounded-2xl py-4 px-6 text-sm focus:ring-2 focus:ring-teal-500">
+                </div>
+            </div>
+            <button onclick="showToast('Project Created!'); switchPage('projects')" class="w-full mt-8 py-4 bg-teal-700 text-white rounded-3xl font-bold shadow-xl btn-active">Confirm & Create</button>
+            <button onclick="switchPage('home')" class="w-full mt-3 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Cancel</button>
+        </div>
+
+        <!-- 12. 新建任务 NEW TASK -->
+        <div id="page-new-task" class="page">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">New Task</h2>
+            <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-4">
+                <div>
+                    <label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Task Title</label>
+                    <input type="text" placeholder="What needs to be done?" class="w-full bg-slate-50 border-0 rounded-2xl py-4 px-6 text-sm focus:ring-2 focus:ring-teal-500">
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Priority</label>
+                    <div class="flex gap-2">
+                        <button class="flex-1 py-3 bg-red-50 text-red-600 rounded-xl font-bold text-[10px] border border-red-100">HIGH</button>
+                        <button class="flex-1 py-3 bg-blue-50 text-blue-600 rounded-xl font-bold text-[10px]">MEDIUM</button>
+                        <button class="flex-1 py-3 bg-slate-50 text-slate-500 rounded-xl font-bold text-[10px]">LOW</button>
+                    </div>
+                </div>
+            </div>
+            <button onclick="showToast('Task Assigned!'); switchPage('tasks')" class="w-full mt-8 py-4 bg-teal-700 text-white rounded-3xl font-bold shadow-xl btn-active">Assign Task</button>
+            <button onclick="switchPage('tasks')" class="w-full mt-3 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Cancel</button>
+        </div>
+
+        <!-- 13. 资金日志 BUDGET -->
+        <div id="page-budget" class="page">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Budget Logs</h2>
+            <div class="space-y-4">
+                <div class="bg-white p-5 rounded-3xl border border-slate-50 flex justify-between items-center shadow-sm">
+                    <div>
+                        <h5 class="font-bold text-slate-800">Port Equipment</h5>
+                        <p class="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">May 12, 2026</p>
+                    </div>
+                    <span class="text-red-500 font-bold">-$450,000</span>
+                </div>
+                <div class="bg-white p-5 rounded-3xl border border-slate-50 flex justify-between items-center shadow-sm">
+                    <div>
+                        <h5 class="font-bold text-slate-800">Gov. Allocation</h5>
+                        <p class="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">May 10, 2026</p>
+                    </div>
+                    <span class="text-green-500 font-bold">+$1,200,000</span>
+                </div>
+            </div>
+            <button onclick="switchPage('home')" class="w-full mt-8 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Back to Dashboard</button>
+        </div>
+
+    </main>
+
+    <!-- 底部固定导航 -->
+    <nav class="fixed bottom-0 left-0 w-full glass border-t border-teal-100/30 flex justify-around items-center px-4 py-3 pb-6 z-40">
+        <button onclick="switchPage('home', this)" class="nav-item active flex flex-col items-center gap-1 transition-all btn-active">
+            <i class="p-2 text-2xl">🏠</i>
+            <span class="text-[9px] font-extrabold uppercase tracking-widest">Home</span>
+        </button>
+        <button onclick="switchPage('projects', this)" class="nav-item flex flex-col items-center gap-1 transition-all btn-active">
+            <i class="p-2 text-2xl">📂</i>
+            <span class="text-[9px] font-extrabold uppercase tracking-widest">Registry</span>
+        </button>
+        <button onclick="toggleModal('plus-modal')" class="flex flex-col items-center -mt-10">
+            <div class="w-16 h-16 bg-[#0d5c63] rounded-full border-[6px] border-[#f3f7f7] shadow-xl flex items-center justify-center text-3xl text-white transition-transform active:scale-90">＋</div>
+        </button>
+        <button onclick="switchPage('charts', this)" class="nav-item flex flex-col items-center gap-1 transition-all btn-active">
+            <i class="p-2 text-2xl">📊</i>
+            <span class="text-[9px] font-extrabold uppercase tracking-widest">Data</span>
+        </button>
+        <button onclick="switchPage('settings', this)" class="nav-item flex flex-col items-center gap-1 transition-all btn-active">
+            <i class="p-2 text-2xl">⚙️</i>
+            <span class="text-[9px] font-extrabold uppercase tracking-widest">Menu</span>
+        </button>
+    </nav>
+
+    <!-- 详情视角详情页 (DETAIL VIEW) -->
+    <div id="detail-view">
+        <div class="sticky top-0 glass z-50 p-6 flex items-center justify-between border-b">
+            <button onclick="closeDetail()" class="text-2xl">←</button>
+            <h3 class="font-bold text-slate-800" id="detail-title">Project Detail</h3>
+            <button onclick="showToast('Shared')" class="text-xl">📤</button>
+        </div>
+        <div class="p-6">
+            <div class="bg-white rounded-[2.5rem] p-6 shadow-sm mb-6 border border-teal-50">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-16 h-16 bg-teal-50 rounded-3xl flex items-center justify-center text-4xl">🏗️</div>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800" id="detail-name">Port of Tibar</h2>
+                        <span class="text-[10px] font-bold text-teal-600 bg-teal-50 px-3 py-1 rounded-full italic">High Priority</span>
+                    </div>
+                </div>
+                <p class="text-sm text-slate-500 leading-relaxed mb-6">
+                    East Timor's first deep-water port, aimed at enhancing international trade and logistical capabilities for the nation.
+                </p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-50 p-4 rounded-2xl">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">Budget Status</p>
+                        <p class="text-lg font-bold text-slate-800 text-teal-700">Healthy</p>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">Main Team</p>
+                        <p class="text-lg font-bold text-slate-800">42 Members</p>
+                    </div>
+                </div>
+            </div>
+
+            <h4 class="font-bold text-slate-800 mb-4">Project Timeline</h4>
+            <div class="space-y-6 relative ml-4 border-l-2 border-teal-100 pl-8 pb-10">
+                <div class="relative">
+                    <div class="absolute -left-[41px] top-0 w-4 h-4 rounded-full bg-teal-600 shadow-lg shadow-teal-200"></div>
+                    <h5 class="text-sm font-bold text-slate-800">Groundbreaking</h5>
+                    <p class="text-xs text-slate-400">January 2024</p>
+                </div>
+                <div class="relative">
+                    <div class="absolute -left-[41px] top-0 w-4 h-4 rounded-full bg-teal-600 shadow-lg shadow-teal-200"></div>
+                    <h5 class="text-sm font-bold text-slate-800">Foundation Complete</h5>
+                    <p class="text-xs text-slate-400">June 2024</p>
+                </div>
+                <div class="relative opacity-30">
+                    <div class="absolute -left-[41px] top-0 w-4 h-4 rounded-full bg-slate-300"></div>
+                    <h5 class="text-sm font-bold text-slate-800">Grand Opening</h5>
+                    <p class="text-xs text-slate-400">Estimated Dec 2025</p>
+                </div>
+            </div>
+            
+            <button onclick="showToast('Approval Sent')" class="w-full bg-[#0d5c63] text-white font-bold py-5 rounded-3xl shadow-xl active:scale-95 transition-transform">✅ Approve Next Milestone</button>
         </div>
     </div>
-    <nav class="fixed bottom-0 left-0 w-full glass border-t border-teal-100/30 flex justify-around items-center px-4 py-3 pb-6">
-        <button class="flex flex-col items-center gap-1"><span>🏠</span><span class="text-[9px] font-bold">Home</span></button>
-        <button class="flex flex-col items-center gap-1"><span>📂</span><span class="text-[9px] font-bold">Registry</span></button>
-        <button class="w-14 h-14 bg-[#0d5c63] rounded-full text-white text-3xl shadow-xl flex items-center justify-center">＋</button>
-        <button class="flex flex-col items-center gap-1"><span>📊</span><span class="text-[9px] font-bold">Data</span></button>
-        <button class="flex flex-col items-center gap-1"><span>⚙️</span><span class="text-[9px] font-bold">Settings</span></button>
-    </nav>
+
+    <!-- 各类弹窗层 -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black/60 z-50 hidden backdrop-blur-sm transition-all" onclick="closeAllModals()"></div>
+    
+    <!-- 加号快捷菜单 -->
+    <div id="plus-modal" class="fixed bottom-24 left-1/2 -translate-x-1/2 w-[85%] bg-white rounded-[3rem] p-8 z-[60] hidden shadow-2xl animate-pageFadeIn">
+        <h3 class="text-center font-bold text-slate-800 mb-6 italic underline">TimorPM Quick Entry</h3>
+        <div class="grid grid-cols-2 gap-4">
+            <button onclick="switchPage('new-project')" class="flex flex-col items-center gap-2 p-4 bg-teal-50 rounded-[2rem] btn-active">
+                <span class="text-3xl">📁</span><span class="text-[10px] font-bold uppercase">Project</span>
+            </button>
+            <button onclick="switchPage('team')" class="flex flex-col items-center gap-2 p-4 bg-purple-50 rounded-[2rem] btn-active">
+                <span class="text-3xl">👥</span><span class="text-[10px] font-bold uppercase">Team</span>
+            </button>
+            <button onclick="switchPage('budget')" class="flex flex-col items-center gap-2 p-4 bg-blue-50 rounded-[2rem] btn-active">
+                <span class="text-3xl">💰</span><span class="text-[10px] font-bold uppercase">Budget</span>
+            </button>
+            <button onclick="switchPage('risks')" class="flex flex-col items-center gap-2 p-4 bg-red-50 rounded-[2rem] btn-active">
+                <span class="text-3xl">🚨</span><span class="text-[10px] font-bold uppercase">Risks</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 通知模态框 -->
+    <div id="notif-modal" class="fixed top-20 right-6 w-[70%] bg-white rounded-[2rem] p-6 z-[60] hidden shadow-2xl animate-pageFadeIn border border-teal-50">
+        <h4 class="font-bold text-slate-800 mb-4 flex justify-between">Recent <span>🔔</span></h4>
+        <div class="space-y-4">
+            <div class="border-b pb-2"><p class="text-xs font-bold text-teal-800">Budget Approved</p><p class="text-[9px] text-slate-400">2 hours ago</p></div>
+            <div class="border-b pb-2"><p class="text-xs font-bold text-orange-800">Deadline Warning</p><p class="text-[9px] text-slate-400">Yesterday</p></div>
+        </div>
+    </div>
+
+    <!-- 轻提示 (Toast) -->
+    <div id="toast" class="fixed top-24 left-1/2 -translate-x-1/2 glass px-6 py-3 rounded-2xl text-[10px] font-bold text-[#0d5c63] border border-teal-500 shadow-xl opacity-0 transition-all z-[200] pointer-events-none tracking-widest uppercase">
+        Action Completed
+    </div>
+
+    <script>
+        // --- 核心路由系统 ---
+        function switchPage(pageId, el) {
+            // 关闭所有弹窗
+            closeAllModals();
+
+            // 切换显隐
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+
+            // 底部导航状态
+            if (el) {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                el.classList.add('active');
+            }
+
+            // 振动反馈 (如果支持)
+            if(window.navigator.vibrate) window.navigator.vibrate(10);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- 任务切换逻辑 ---
+        function toggleTask(el) {
+            el.classList.toggle('opacity-50');
+            const circle = el.querySelector('.check-circle');
+            if (el.classList.contains('opacity-50')) {
+                circle.innerHTML = '✓';
+                circle.classList.add('bg-teal-500', 'border-teal-500', 'flex', 'items-center', 'justify-center', 'text-white', 'text-[10px]');
+                showToast('Task Done!');
+            } else {
+                circle.innerHTML = '';
+                circle.classList.remove('bg-teal-500', 'border-teal-500', 'flex', 'items-center', 'justify-center', 'text-white', 'text-[10px]');
+            }
+        }
+
+        // --- 详情页逻辑 ---
+        function openDetail(name) {
+            document.getElementById('detail-name').innerText = name;
+            document.getElementById('detail-view').classList.add('open');
+            document.body.style.overflow = 'hidden'; // 禁止底页滚动
+        }
+
+        function closeDetail() {
+            document.getElementById('detail-view').classList.remove('open');
+            document.body.style.overflow = 'auto';
+        }
+
+        // --- 弹窗控制器 ---
+        function toggleModal(id) {
+            const modal = document.getElementById(id);
+            const overlay = document.getElementById('modal-overlay');
+            const isHidden = modal.classList.contains('hidden');
+            
+            closeAllModals(); // 先关掉所有其他的
+
+            if (isHidden) {
+                modal.classList.remove('hidden');
+                overlay.classList.remove('hidden');
+            }
+        }
+
+        function closeAllModals() {
+            document.getElementById('plus-modal').classList.add('hidden');
+            document.getElementById('notif-modal').classList.add('hidden');
+            document.getElementById('modal-overlay').classList.add('hidden');
+        }
+
+        // --- 轻提示 ---
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.opacity = '1';
+            t.style.transform = 'translate(-50%, -20px)';
+            setTimeout(() => {
+                t.style.opacity = '0';
+                t.style.transform = 'translate(-50%, 0)';
+            }, 2000);
+        }
+
+        // 模拟背景加载
+        window.onload = () => {
+            console.log('✅ TimorPM Delivery Package Ready');
+            showToast('System Ready');
+        }
+    </script>
 </body>
 </html>
