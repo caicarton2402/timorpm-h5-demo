@@ -1,961 +1,983 @@
 <!DOCTYPE html>
-<html lang="tet">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>TimorPM - Project Management System</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TimorGAPAgent | Multi-Agent Collaboration Hub</title>
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- ECharts CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
-        
         :root {
-            --primary: #0d5c63;
-            --primary-light: #15848f;
-            --accent: #d4af37;
-            --bg: #f3f7f7;
+            --primary-teal: #1b7e6b;
+            --primary-navy: #0b3b5f;
+            --bg-gray: #f4f7fa;
+            --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            --accent-gold: #c29d0b;
+            --safe-green: #22c55e;
+            --warn-orange: #f97316;
+            --danger-red: #ef4444;
+            --chat-bg: #f3f4f6;
+            --user-bubble: #1b7e6b;
+            --agent-bubble: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg);
-            -webkit-user-select: none;
-            user-select: none;
+            background: var(--bg-gray);
+            font-family: 'Inter', -apple-system, sans-serif;
+            color: #1e2a3e;
+            line-height: 1.5;
+            overflow-x: hidden;
         }
 
-        /* 页面切换逻辑 */
+        /* SPA Page Management */
         .page {
-            display: none;
-            min-height: calc(100vh - 160px);
-        }
-        .page.active {
-            display: block;
-            animation: pageFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        @keyframes pageFadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* 磨砂玻璃效果 */
-        .glass {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-
-        /* 隐藏滚动条 */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-
-        /* 按钮点击态 */
-        .btn-active:active { transform: scale(0.95); opacity: 0.8; }
-
-        /* 详情页滑出层 */
-        #detail-view {
             position: fixed;
             top: 0;
-            left: 100%;
+            left: 0;
             width: 100%;
             height: 100%;
-            background: var(--bg);
-            z-index: 100;
-            transition: left 0.3s ease-out;
+            background: var(--bg-gray);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
             overflow-y: auto;
+            padding-bottom: 40px;
         }
-        #detail-view.open { left: 0; }
+        .page.hidden { transform: translateX(100%); }
+        .page.active { transform: translateX(0); }
+        
+        #dashboard {
+            position: relative;
+            transform: none;
+            z-index: 1;
+            padding-bottom: 100px;
+        }
 
-        .nav-item.active { color: var(--primary); }
-        .nav-item.active i { background: #e0f2f1; border-radius: 12px; }
+        /* Components: Header */
+        .h5-header {
+            background: linear-gradient(135deg, var(--primary-navy), var(--primary-teal));
+            padding: 24px 20px 48px;
+            color: white;
+            border-radius: 0 0 32px 32px;
+        }
+        .h5-header h1 {
+            font-size: 24px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .h5-header p {
+            font-size: 13px;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        /* Stats Badge */
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            background: white;
+            margin: -28px 16px 20px;
+            padding: 20px 16px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 2;
+        }
+        .stat-box { text-align: center; }
+        .stat-val { font-size: 22px; font-weight: 800; color: var(--primary-navy); display: block; }
+        .stat-name { font-size: 10px; color: #7f99b5; text-transform: uppercase; font-weight: 600; }
+
+        /* Content Area */
+        .content { padding: 0 16px; }
+
+        /* Card System */
+        .card {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(0,0,0,0.02);
+            box-shadow: var(--card-shadow);
+            transition: transform 0.1s;
+        }
+        .card:active { transform: scale(0.98); }
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .tag-agent {
+            background: #eef2ff;
+            color: #4a6ee0;
+            font-size: 9px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* Well Items */
+        .well-item {
+            background: #f8fbff;
+            border-radius: 16px;
+            padding: 14px;
+            margin-bottom: 12px;
+            border: 1px solid #edf2f7;
+            cursor: pointer;
+        }
+        .well-top { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .well-name { font-weight: 700; font-size: 15px; color: var(--primary-navy); }
+        .status-pill {
+            font-size: 10px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            background: #e6f7ec;
+            color: #2b6e3c;
+            font-weight: 600;
+        }
+        .status-pill.warning { background: #fff1e0; color: #c26b1a; }
+        .well-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            font-size: 11px;
+            color: #64748b;
+        }
+        .well-metrics strong { color: #1e2a3e; font-size: 13px; display: block; }
+
+        /* Agent Tasks */
+        .agent-item {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 20px;
+            position: relative;
+            cursor: pointer;
+        }
+        .agent-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--primary-teal);
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            z-index: 2;
+        }
+        .agent-info h4 { font-size: 14px; font-weight: 700; }
+        .agent-info p { font-size: 12px; color: #64748b; line-height: 1.4; }
+
+        /* Charts */
+        #sequenceChart { height: 250px; width: 100%; }
+
+        /* Sub-page Design */
+        .sub-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: white;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            font-size: 18px;
+            color: var(--primary-navy);
+        }
+        .sub-title { font-size: 18px; font-weight: 800; color: var(--primary-navy); }
+        
+        .delivery-content { padding: 20px; }
+        .delivery-header {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .log-item {
+            padding-left: 16px;
+            border-left: 2px solid #e2e8f0;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .log-item::before {
+            content: '';
+            position: absolute;
+            left: -5px;
+            top: 0;
+            width: 8px;
+            height: 8px;
+            background: var(--primary-teal);
+            border-radius: 50%;
+        }
+        .log-time { font-size: 10px; color: #94a3b8; font-weight: 700; }
+        .log-msg { font-size: 13px; font-weight: 500; margin-top: 4px; }
+
+        /* Bottom Fixed Bar */
+        .bottom-actions {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 16px 16px 32px;
+            display: flex;
+            gap: 12px;
+            box-shadow: 0 -8px 20px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+        .btn {
+            flex: 1;
+            border: none;
+            height: 52px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .btn-primary { background: var(--primary-teal); color: white; box-shadow: 0 4px 15px rgba(27, 126, 107, 0.3); }
+        .btn-outline { background: #f1f5f9; color: var(--primary-navy); }
+
+        /* Chat Component Styles */
+        #chat-fab {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: var(--primary-navy);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            z-index: 90;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        #chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100% - 60px);
+            background: var(--chat-bg);
+        }
+        #message-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            line-height: 1.4;
+            position: relative;
+        }
+        .message.user {
+            align-self: flex-end;
+            background: var(--user-bubble);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .message.agent {
+            align-self: flex-start;
+            background: var(--agent-bubble);
+            color: #1e2a3e;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .typing-indicator {
+            font-style: italic;
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+        #chat-input-bar {
+            padding: 12px 16px;
+            background: white;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        #chat-input {
+            flex: 1;
+            border: 1px solid #e5e7eb;
+            padding: 10px 16px;
+            border-radius: 24px;
+            font-size: 14px;
+            outline: none;
+        }
+        #send-btn {
+            background: var(--primary-teal);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Utilities */
+        .pulse { animation: pulse-animation 2s infinite; }
+        @keyframes pulse-animation {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        ::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="max-w-md mx-auto relative overflow-x-hidden">
+<body>
 
-    <!-- 顶部状态栏 -->
-    <header class="sticky top-0 z-40 glass border-b border-teal-100/50 px-6 py-4 flex items-center justify-between">
-        <div>
-            <h1 class="text-xl font-extrabold text-[#0d5c63] flex items-center gap-2">
-                <span class="w-2 h-6 bg-[#d4af37] rounded-full"></span>TimorPM
-            </h1>
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="page active">
+        <header class="h5-header">
+            <h1><i class="fas fa-brain"></i> TimorGAPAgent</h1>
+            <p>Intelligence Hub for Oil & Gas Assets</p>
+        </header>
+
+        <div class="stats-container">
+            <div class="stat-box">
+                <span class="stat-val" id="activeAgentsCount">6</span>
+                <span class="stat-name">Active Agents</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-val" id="wellCount">4</span>
+                <span class="stat-name">Managed Wells</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-val" id="alertsCount">0</span>
+                <span class="stat-name">Risk Alerts</span>
+            </div>
         </div>
-        <div class="flex items-center gap-4">
-            <button onclick="switchPage('notifications')" class="relative btn-active">
-                <span class="text-xl">🔔</span>
-                <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-            </button>
-            <button onclick="switchPage('profile')" class="w-9 h-9 rounded-xl bg-teal-800 border-2 border-teal-100 overflow-hidden btn-active">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="user">
-            </button>
-        </div>
-    </header>
 
-    <!-- 主容器 -->
-    <main class="px-6 pt-4 pb-24">
+        <div class="content">
+            <!-- Wells Section -->
+            <section class="card">
+                <div class="card-title">
+                    <span><i class="fas fa-oil-well" style="color: var(--primary-teal);"></i> Wellbore Health</span>
+                    <span class="tag-agent">Sensor Data</span>
+                </div>
+                <div id="wellList">
+                    <!-- Dynamic Wells -->
+                </div>
+            </section>
 
-        <!-- 1. 首页 DASHBOARD -->
-        <div id="page-home" class="page active">
-            <div class="mb-6">
-                <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Welcome back</p>
-                <h2 class="text-2xl font-bold text-slate-800">Sr. Administrador</h2>
-            </div>
+            <!-- Chart Section -->
+            <section class="card" onclick="showPage('performance-page')" style="cursor: pointer;">
+                <div class="card-title">
+                    <span><i class="fas fa-chart-line" style="color: #ef4444;"></i> Asset Performance</span>
+                    <span class="tag-agent">Production Analytics</span>
+                </div>
+                <div style="display: flex; align-items: baseline; gap: 8px;">
+                    <span style="font-size: 24px; font-weight: 800;">1,245.8</span>
+                    <span style="font-size: 12px; color: #64748b;">m³/d Total Rate</span>
+                </div>
+                <p style="font-size: 11px; color: var(--safe-green); font-weight: 700; margin-top: 8px;"><i class="fas fa-caret-up"></i> 4.2% Optimization Gain</p>
+                <p style="font-size: 10px; color: var(--primary-teal); margin-top: 12px; font-weight: 700;">View Level 2: Performance Analytics</p>
+            </section>
 
-            <div class="grid grid-cols-2 gap-4 mb-8">
-                <div class="bg-gradient-to-br from-[#0d5c63] to-[#15848f] p-5 rounded-[2rem] text-white shadow-xl">
-                    <p class="text-teal-100/70 text-[10px] font-bold uppercase mb-4">Active Projects</p>
-                    <div class="flex items-end justify-between">
-                        <span class="text-4xl font-bold">14</span>
-                        <span class="text-[10px] bg-white/20 px-2 py-1 rounded-lg">↑ 12%</span>
-                    </div>
+            <!-- Chart Section -->
+            <section class="card">
+                <div class="card-title">
+                    <span><i class="fas fa-project-diagram" style="color: #6366f1;"></i> Reasoning Chain</span>
+                    <span class="tag-agent">Real-time Collab</span>
                 </div>
-                <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm">
-                    <p class="text-slate-400 text-[10px] font-bold uppercase mb-4">Budget Used</p>
-                    <div class="flex items-end justify-between">
-                        <span class="text-2xl font-bold text-slate-800">68%</span>
-                        <div class="w-8 h-8 rounded-full border-4 border-teal-500 border-t-transparent animate-spin-slow"></div>
-                    </div>
-                </div>
-            </div>
+                <div id="sequenceChart"></div>
+            </section>
 
-            <div class="grid grid-cols-4 gap-4 mb-8">
-                <div onclick="switchPage('upload')" class="flex flex-col items-center gap-2 btn-active">
-                    <div class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-xl">📸</div>
-                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Inspect</span>
+            <!-- Agents Section -->
+            <section class="card">
+                <div class="card-title">
+                    <span><i class="fas fa-robot" style="color: #f59e0b;"></i> Agent Workforce</span>
+                    <span class="tag-agent">Brain Layers</span>
                 </div>
-                <div onclick="switchPage('approval')" class="flex flex-col items-center gap-2 btn-active">
-                    <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-xl">⚖️</div>
-                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Approve</span>
+                <div class="agent-flow" id="agentTaskList">
+                    <!-- Dynamic Agents -->
                 </div>
-                <div onclick="switchPage('team')" class="flex flex-col items-center gap-2 btn-active">
-                    <div class="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center text-xl">👥</div>
-                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Team</span>
-                </div>
-                <div onclick="switchPage('risks')" class="flex flex-col items-center gap-2 btn-active">
-                    <div class="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center text-xl">🚨</div>
-                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Risks</span>
-                </div>
-                <div onclick="switchPage('charts')" class="flex flex-col items-center gap-2 btn-active">
-                    <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-xl">📊</div>
-                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Stats</span>
-                </div>
-                <div onclick="switchPage('budget')" class="flex flex-col items-center gap-2 btn-active">
-                    <div class="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-xl">💰</div>
-                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Budget</span>
-                </div>
-                <div onclick="switchPage('tasks')" class="flex flex-col items-center gap-2 btn-active">
-                    <div class="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-xl">📝</div>
-                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Tasks</span>
-                </div>
-                <div onclick="switchPage('gis')" class="flex flex-col items-center gap-2 btn-active">
-                    <div class="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center text-xl">🗺️</div>
-                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">GIS Map</span>
-                </div>
-                <div onclick="switchPage('settings')" class="flex flex-col items-center gap-2 btn-active">
-                    <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-xl">⚙️</div>
-                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">More</span>
-                </div>
-            </div>
+            </section>
 
-            <h3 class="font-bold text-slate-800 mb-4 flex items-center justify-between">
-                Priority Track <button class="text-teal-600 text-xs" onclick="switchPage('projects')">View All</button>
-            </h3>
-
-            <div class="space-y-4">
-                <div onclick="openDetail('Port of Tibar')" class="bg-white p-5 rounded-3xl border border-slate-50 shadow-sm btn-active">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center text-2xl">🏗️</div>
-                            <div>
-                                <h4 class="font-bold text-slate-800">Port of Tibar</h4>
-                                <p class="text-[10px] text-slate-400 font-bold uppercase">Logistics Hub</p>
-                            </div>
-                        </div>
-                        <span class="text-[10px] font-bold text-teal-600 bg-teal-50 px-3 py-1 rounded-full italic">On Track</span>
+            <!-- Briefing Cards -->
+            <div style="display: flex; gap: 14px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 20px;">
+                <div class="card" style="min-width: 280px; margin-bottom: 0; cursor: pointer;" onclick="showPage('carbon-page')">
+                    <div class="card-title" style="font-size: 14px;">
+                        <span><i class="fas fa-leaf" style="color: var(--safe-green);"></i> Carbon Audit</span>
                     </div>
-                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                        <div class="bg-teal-600 h-full w-[82%]"></div>
-                    </div>
-                    <div class="mt-2 flex justify-between text-[10px] font-bold text-slate-400">
-                        <span>Phase 4/5</span>
-                        <span>82%</span>
-                    </div>
+                    <p style="font-size: 13px; font-weight: 600;">Net: 328 tCO₂e <span style="color: var(--safe-green);">▼ 2.1%</span></p>
+                    <p style="font-size: 11px; color: #64748b; margin-top: 6px;">Collaborative Target: Carbon Neutral Phase 1</p>
                 </div>
-
-                <div onclick="openDetail('Dili Water Supply')" class="bg-white p-5 rounded-3xl border border-slate-50 shadow-sm btn-active">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-2xl">💧</div>
-                            <div>
-                                <h4 class="font-bold text-slate-800">Dili Water Supply</h4>
-                                <p class="text-[10px] text-slate-400 font-bold uppercase">Infrastructure</p>
-                            </div>
-                        </div>
-                        <span class="text-[10px] font-bold text-orange-600 bg-orange-50 px-3 py-1 rounded-full italic">Delayed</span>
+                <div class="card" style="min-width: 280px; margin-bottom: 0; cursor: pointer;" onclick="showPage('security-page')">
+                    <div class="card-title" style="font-size: 14px;">
+                        <span><i class="fas fa-shield-halved" style="color: #3b82f6;"></i> Security Sentinel</span>
                     </div>
-                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                        <div class="bg-orange-500 h-full w-[45%]"></div>
-                    </div>
-                    <div class="mt-2 flex justify-between text-[10px] font-bold text-slate-400">
-                        <span>Phase 2/5</span>
-                        <span>45%</span>
-                    </div>
+                    <p style="font-size: 13px; font-weight: 600;">System Integrity: <span style="color: var(--safe-green);">100%</span></p>
+                    <p style="font-size: 11px; color: #64748b; margin-top: 6px;">Network scan completed 2 mins ago.</p>
                 </div>
             </div>
         </div>
 
-        <!-- 2. 项目列表 PROJECTS -->
-        <div id="page-projects" class="page">
-            <h2 class="text-2xl font-bold text-slate-800 mb-6">Projects Registry</h2>
-            <div class="relative mb-6">
-                <input type="text" placeholder="Search projects..." class="w-full bg-white border border-slate-100 rounded-2xl py-4 px-6 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm">
-                <span class="absolute right-5 top-4">🔍</span>
-            </div>
-            
-            <div class="flex gap-2 mb-6 overflow-x-auto no-scrollbar">
-                <button class="bg-teal-700 text-white px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-lg">All</button>
-                <button class="bg-white text-slate-500 border border-slate-100 px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">High Budget</button>
-                <button class="bg-white text-slate-500 border border-slate-100 px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Infrastructure</button>
-                <button class="bg-white text-slate-500 border border-slate-100 px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap">Completed</button>
-            </div>
-
-            <div class="grid grid-cols-1 gap-4">
-                <!-- 循环示例 -->
-                <div class="bg-white p-5 rounded-[2.5rem] border border-slate-50 shadow-sm" onclick="openDetail('South Coast Highway')">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-14 h-14 bg-blue-50 rounded-3xl flex items-center justify-center text-2xl">🛣️</div>
-                        <div>
-                            <h4 class="font-bold text-slate-800">South Coast Highway</h4>
-                            <p class="text-xs text-slate-400">Budget: $240,000,000</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-2">
-                        <span class="text-[9px] font-extrabold uppercase bg-slate-100 px-3 py-1 rounded-lg">Transport</span>
-                        <span class="text-[9px] font-extrabold uppercase bg-slate-100 px-3 py-1 rounded-lg">Active</span>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-[2.5rem] border border-slate-50 shadow-sm" onclick="openDetail('Baucau Airport')">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-14 h-14 bg-indigo-50 rounded-3xl flex items-center justify-center text-2xl">✈️</div>
-                        <div>
-                            <h4 class="font-bold text-slate-800">Baucau Airport Upgrade</h4>
-                            <p class="text-xs text-slate-400">Budget: $15,800,000</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-2">
-                        <span class="text-[9px] font-extrabold uppercase bg-slate-100 px-3 py-1 rounded-lg">Aviation</span>
-                        <span class="text-[9px] font-extrabold uppercase bg-slate-100 px-3 py-1 rounded-lg">Planning</span>
-                    </div>
-                </div>
-            </div>
-            <button onclick="switchPage('new-project')" class="w-full mt-6 py-4 bg-teal-700 text-white rounded-3xl font-bold shadow-lg btn-active">+ Create New Project</button>
-        </div>
-
-        <!-- 3. 任务页面 TASKS -->
-        <div id="page-tasks" class="page">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-slate-800">Daily Tasks</h2>
-                <button onclick="switchPage('new-task')" class="w-10 h-10 bg-teal-700 text-white rounded-xl flex items-center justify-center text-xl shadow-lg btn-active">＋</button>
-            </div>
-
-            <div class="space-y-4">
-                <div onclick="toggleTask(this)" class="flex items-center gap-4 bg-white p-5 rounded-3xl border border-slate-50 btn-active">
-                    <div class="w-7 h-7 rounded-full border-4 border-slate-100 check-circle transition-all"></div>
-                    <div class="flex-1">
-                        <h5 class="text-sm font-bold text-slate-700">Audit Tibar Port Q2 Expenses</h5>
-                        <p class="text-[10px] text-slate-400 uppercase font-bold">Priority: High</p>
-                    </div>
-                </div>
-                <div onclick="toggleTask(this)" class="flex items-center gap-4 bg-white p-5 rounded-3xl border border-slate-50 btn-active">
-                    <div class="w-7 h-7 rounded-full border-4 border-slate-100 check-circle transition-all"></div>
-                    <div class="flex-1">
-                        <h5 class="text-sm font-bold text-slate-700">Contractor Weekly Sync</h5>
-                        <p class="text-[10px] text-slate-400 uppercase font-bold">Priority: Medium</p>
-                    </div>
-                </div>
-                <div onclick="toggleTask(this)" class="flex items-center gap-4 bg-white p-5 rounded-3xl border border-slate-50 btn-active opacity-50">
-                    <div class="w-7 h-7 rounded-full border-4 bg-teal-500 border-teal-500 flex items-center justify-center text-white text-[10px]">✓</div>
-                    <div class="flex-1">
-                        <h5 class="text-sm font-bold text-slate-700 line-through">Draft Govt Budget Memo</h5>
-                        <p class="text-[10px] text-teal-600 uppercase font-bold">Completed</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 4. 统计页面 CHARTS -->
-        <div id="page-charts" class="page">
-            <h2 class="text-2xl font-bold text-slate-800 mb-6">Strategic Analytics</h2>
-            
-            <!-- 模拟柱状图 -->
-            <div class="bg-white p-6 rounded-[2.5rem] shadow-sm mb-6 border border-slate-50">
-                <h4 class="text-xs font-bold text-slate-400 uppercase mb-8">Quarterly Spending (m$)</h4>
-                <div class="flex items-end justify-between h-40 px-4">
-                    <div class="flex flex-col items-center gap-2 w-8">
-                        <div class="w-full bg-slate-100 rounded-lg h-24 relative overflow-hidden">
-                            <div class="absolute bottom-0 w-full bg-teal-600 h-1/2 rounded-lg"></div>
-                        </div>
-                        <span class="text-[9px] font-bold text-slate-400">Q1</span>
-                    </div>
-                    <div class="flex flex-col items-center gap-2 w-8">
-                        <div class="w-full bg-slate-100 rounded-lg h-32 relative overflow-hidden">
-                            <div class="absolute bottom-0 w-full bg-teal-600 h-3/4 rounded-lg"></div>
-                        </div>
-                        <span class="text-[9px] font-bold text-slate-400">Q2</span>
-                    </div>
-                    <div class="flex flex-col items-center gap-2 w-8">
-                        <div class="w-full bg-slate-100 rounded-lg h-40 relative overflow-hidden">
-                            <div class="absolute bottom-0 w-full bg-[#d4af37] h-full rounded-lg animate-pulse"></div>
-                        </div>
-                        <span class="text-[9px] font-bold text-slate-400">Q3</span>
-                    </div>
-                    <div class="flex flex-col items-center gap-2 w-8">
-                        <div class="w-full bg-slate-100 rounded-lg h-28 relative overflow-hidden">
-                            <div class="absolute bottom-0 w-full bg-teal-600 h-[60%] rounded-lg"></div>
-                        </div>
-                        <span class="text-[9px] font-bold text-slate-400">Q4</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="space-y-3">
-                <div onclick="showToast('Exporting CSV...')" class="bg-white p-4 rounded-2xl flex items-center justify-between border border-slate-50 btn-active">
-                    <div class="flex items-center gap-3 font-bold text-sm text-slate-700 italic underline">
-                        <span>📊</span> Download Annual Review
-                    </div>
-                    <span class="text-teal-600">📥</span>
-                </div>
-                <div onclick="showToast('Exporting PDF...')" class="bg-white p-4 rounded-2xl flex items-center justify-between border border-slate-50 btn-active">
-                    <div class="flex items-center gap-3 font-bold text-sm text-slate-700 italic underline">
-                        <span>📄</span> Project Health Report
-                    </div>
-                    <span class="text-teal-600">📥</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 5. 更多页面 SETTINGS -->
-        <div id="page-settings" class="page">
-            <h2 class="text-2xl font-bold text-slate-800 mb-6">System Settings</h2>
-            <div class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm">
-                <div onclick="switchPage('team')" class="p-5 border-b border-slate-50 flex justify-between btn-active">
-                    <span class="text-sm font-bold text-slate-700">Team Management</span>
-                    <span class="text-teal-600 font-bold text-xs uppercase italic">42 Members</span>
-                </div>
-                <div onclick="switchPage('risks')" class="p-5 border-b border-slate-50 flex justify-between btn-active">
-                    <span class="text-sm font-bold text-slate-700">Risk Matrix</span>
-                    <span class="text-orange-600 font-bold text-xs uppercase italic">3 Alerts</span>
-                </div>
-                <div onclick="switchPage('profile')" class="p-5 border-b border-slate-50 flex justify-between btn-active">
-                    <span class="text-sm font-bold text-slate-700">User Profile</span>
-                    <span class="text-slate-300">❯</span>
-                </div>
-                <div onclick="switchPage('security')" class="p-5 border-b border-slate-50 flex justify-between btn-active">
-                    <span class="text-sm font-bold text-slate-700">Security & Privacy</span>
-                    <span class="text-slate-300">❯</span>
-                </div>
-                <div onclick="switchPage('notifications')" class="p-5 border-b border-slate-50 flex justify-between btn-active">
-                    <span class="text-sm font-bold text-slate-700">Notifications</span>
-                    <span class="text-slate-300">❯</span>
-                </div>
-                <div onclick="showToast('Language: English')" class="p-5 border-b border-slate-50 flex justify-between btn-active">
-                    <span class="text-sm font-bold text-slate-700">Language</span>
-                    <span class="text-teal-600 font-bold text-xs uppercase">Tetum/English</span>
-                </div>
-                <div onclick="location.reload()" class="p-5 flex justify-between btn-active">
-                    <span class="text-sm font-bold text-red-500">Logout Session</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 6. 人员管理 TEAM -->
-        <div id="page-team" class="page">
-            <h2 class="text-2xl font-bold text-slate-800 mb-6">Team Directory</h2>
-            <div class="space-y-4">
-                <div class="bg-white p-4 rounded-3xl border border-slate-50 flex items-center justify-between shadow-sm">
-                    <div class="flex items-center gap-4">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=John" class="w-12 h-12 rounded-xl bg-teal-50">
-                        <div>
-                            <h4 class="font-bold text-slate-800">Eng. José Ramos</h4>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">Lead Site Manager</p>
-                        </div>
-                    </div>
-                    <span class="w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
-                </div>
-                <div class="bg-white p-4 rounded-3xl border border-slate-50 flex items-center justify-between shadow-sm">
-                    <div class="flex items-center gap-4">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Maria" class="w-12 h-12 rounded-xl bg-teal-50">
-                        <div>
-                            <h4 class="font-bold text-slate-800">Dra. Maria Guterres</h4>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">Financial Auditor</p>
-                        </div>
-                    </div>
-                    <span class="w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
-                </div>
-                <div class="bg-white p-4 rounded-3xl border border-slate-50 flex items-center justify-between shadow-sm">
-                    <div class="flex items-center gap-4">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Peter" class="w-12 h-12 rounded-xl bg-teal-50">
-                        <div>
-                            <h4 class="font-bold text-slate-800">Peter Chen</h4>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">Safety Inspector</p>
-                        </div>
-                    </div>
-                    <span class="w-3 h-3 bg-orange-400 rounded-full border-2 border-white"></span>
-                </div>
-            </div>
-            <button class="w-full mt-6 py-4 bg-teal-700 text-white rounded-3xl font-bold shadow-lg btn-active">+ Invite Member</button>
-            <button onclick="switchPage('settings')" class="w-full mt-3 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Back to Menu</button>
-        </div>
-
-        <!-- 7. 风险地图 RISKS -->
-        <div id="page-risks" class="page">
-            <h2 class="text-2xl font-bold text-slate-800 mb-6">Risk Assessment</h2>
-            <div class="bg-white p-6 rounded-[2.5rem] border border-slate-50 shadow-sm mb-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h4 class="text-xs font-bold text-slate-400 uppercase">Risk Level Overview</h4>
-                    <span class="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-lg">High Risk Environment</span>
-                </div>
-                <div class="flex gap-2 h-4 mb-6">
-                    <div class="flex-1 bg-red-500 rounded-full"></div>
-                    <div class="flex-[2] bg-orange-400 rounded-full"></div>
-                    <div class="flex-[3] bg-yellow-400 rounded-full"></div>
-                    <div class="flex-[4] bg-green-400 rounded-full"></div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="p-3 bg-red-50 rounded-2xl border border-red-100">
-                        <p class="text-[10px] font-bold text-red-600">CRITICAL</p>
-                        <p class="text-lg font-bold">02</p>
-                    </div>
-                    <div class="p-3 bg-orange-50 rounded-2xl border border-orange-100">
-                        <p class="text-[10px] font-bold text-orange-600">WARNING</p>
-                        <p class="text-lg font-bold">05</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="space-y-4">
-                <div class="bg-white p-5 rounded-3xl border-l-4 border-red-500 shadow-sm">
-                    <h5 class="font-bold text-slate-800">Budget Overrun: Port of Tibar</h5>
-                    <p class="text-xs text-slate-400 mt-1">Material costs increased by 15% due to supply chain issues.</p>
-                </div>
-                <div class="bg-white p-5 rounded-3xl border-l-4 border-orange-400 shadow-sm">
-                    <h5 class="font-bold text-slate-800">Weather Delay: South Coast</h5>
-                    <p class="text-xs text-slate-400 mt-1">Heavy rainfall predicted for next 14 days. Construction paused.</p>
-                </div>
-            </div>
-            <button onclick="switchPage('settings')" class="w-full mt-8 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Back to Menu</button>
-        </div>
-
-        <!-- 8. 用户资料 PROFILE -->
-        <div id="page-profile" class="page">
-            <h2 class="text-2xl font-bold text-slate-800 mb-6">My Profile</h2>
-            <div class="bg-white p-8 rounded-[3rem] text-center shadow-sm border border-slate-50 mb-6">
-                <div class="w-24 h-24 mx-auto rounded-[2rem] bg-teal-800 border-4 border-white shadow-xl overflow-hidden mb-4">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="user">
-                </div>
-                <h3 class="text-xl font-bold text-slate-800">Sr. Administrador</h3>
-                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Director of Infrastructure</p>
-            </div>
-            <div class="space-y-3">
-                <div class="bg-white p-5 rounded-3xl border border-slate-100">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase">Email Address</p>
-                    <p class="text-sm font-bold text-slate-700">admin@timorpm.gov.tl</p>
-                </div>
-                <div class="bg-white p-5 rounded-3xl border border-slate-100">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase">Department</p>
-                    <p class="text-sm font-bold text-slate-700">Ministry of Public Works</p>
-                </div>
-            </div>
-            <button onclick="switchPage('settings')" class="w-full mt-8 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Back to Settings</button>
-        </div>
-
-        <!-- 9. 安全设置 SECURITY -->
-        <div id="page-security" class="page">
-            <h2 class="text-2xl font-bold text-slate-800 mb-6">Security</h2>
-            <div class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm mb-6">
-                <div class="p-5 border-b border-slate-50 flex justify-between items-center">
-                    <span class="text-sm font-bold text-slate-700">Two-Factor Auth</span>
-                    <span class="text-teal-600 font-bold text-xs uppercase italic">Enabled</span>
-                </div>
-                <div class="p-5 border-b border-slate-50 flex justify-between items-center">
-                    <span class="text-sm font-bold text-slate-700">Change Password</span>
-                    <span class="text-slate-300">❯</span>
-                </div>
-                <div class="p-5 flex justify-between items-center">
-                    <span class="text-sm font-bold text-slate-700">Session History</span>
-                    <span class="text-slate-300">❯</span>
-                </div>
-            </div>
-            <button onclick="switchPage('settings')" class="w-full mt-4 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Back</button>
-        </div>
-
-        <!-- 10. 通知设置 NOTIFICATIONS -->
-        <div id="page-notifications" class="page">
-            <h2 class="text-2xl font-bold text-slate-800 mb-6">Notifications</h2>
-            <div class="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm mb-6">
-                <div class="p-5 border-b border-slate-50 flex justify-between items-center">
-                    <span class="text-sm font-bold text-slate-700">Email Alerts</span>
-                    <span class="text-teal-600 font-bold text-xs uppercase italic">On</span>
-                </div>
-                <div class="p-5 border-b border-slate-50 flex justify-between items-center">
-                    <span class="text-sm font-bold text-slate-700">Push Notifications</span>
-                    <span class="text-teal-600 font-bold text-xs uppercase italic">On</span>
-                </div>
-                <div class="p-5 flex justify-between items-center">
-                    <span class="text-sm font-bold text-slate-700">Weekly Reports</span>
-                    <span class="text-slate-300">❯</span>
-                </div>
-            </div>
-            <button onclick="switchPage('settings')" class="w-full mt-4 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Back</button>
-        </div>
-
-        <!-- 11. 新建项目 NEW PROJECT -->
-        <div id="page-new-project" class="page">
-            <h2 class="text-2xl font-bold text-slate-800 mb-6">Create Project</h2>
-            <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-4">
-                <div>
-                    <label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Project Name</label>
-                    <input type="text" placeholder="e.g. Dili Airport Expansion" class="w-full bg-slate-50 border-0 rounded-2xl py-4 px-6 text-sm focus:ring-2 focus:ring-teal-500">
-                </div>
-                <div>
-                    <label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Category</label>
-                    <select class="w-full bg-slate-50 border-0 rounded-2xl py-4 px-6 text-sm focus:ring-2 focus:ring-teal-500">
-                        <option>Infrastructure</option>
-                        <option>Education</option>
-                        <option>Health</option>
-                        <option>Energy</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Budget Allocation ($)</label>
-                    <input type="number" placeholder="0.00" class="w-full bg-slate-50 border-0 rounded-2xl py-4 px-6 text-sm focus:ring-2 focus:ring-teal-500">
-                </div>
-            </div>
-            <button onclick="showToast('Project Created!'); switchPage('projects')" class="w-full mt-8 py-4 bg-teal-700 text-white rounded-3xl font-bold shadow-xl btn-active">Confirm & Create</button>
-            <button onclick="switchPage('home')" class="w-full mt-3 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Cancel</button>
-        </div>
-
-        <!-- 12. 新建任务 NEW TASK -->
-        <div id="page-new-task" class="page">
-            <h2 class="text-2xl font-bold text-slate-800 mb-6">New Task</h2>
-            <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-4">
-                <div>
-                    <label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Task Title</label>
-                    <input type="text" placeholder="What needs to be done?" class="w-full bg-slate-50 border-0 rounded-2xl py-4 px-6 text-sm focus:ring-2 focus:ring-teal-500">
-                </div>
-                <div>
-                    <label class="text-[10px] text-slate-400 font-bold uppercase block mb-1">Priority</label>
-                    <div class="flex gap-2">
-                        <button class="flex-1 py-3 bg-red-50 text-red-600 rounded-xl font-bold text-[10px] border border-red-100">HIGH</button>
-                        <button class="flex-1 py-3 bg-blue-50 text-blue-600 rounded-xl font-bold text-[10px]">MEDIUM</button>
-                        <button class="flex-1 py-3 bg-slate-50 text-slate-500 rounded-xl font-bold text-[10px]">LOW</button>
-                    </div>
-                </div>
-            </div>
-            <button onclick="showToast('Task Assigned!'); switchPage('tasks')" class="w-full mt-8 py-4 bg-teal-700 text-white rounded-3xl font-bold shadow-xl btn-active">Assign Task</button>
-            <button onclick="switchPage('tasks')" class="w-full mt-3 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Cancel</button>
-        </div>
-
-        <!-- 13. 资金日志 BUDGET -->
-        <div id="page-budget" class="page">
-            <h2 class="text-2xl font-bold text-slate-800 mb-6">Budget Logs</h2>
-            <div class="space-y-4">
-                <div class="bg-white p-5 rounded-3xl border border-slate-50 flex justify-between items-center shadow-sm">
-                    <div>
-                        <h5 class="font-bold text-slate-800">Port Equipment</h5>
-                        <p class="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">May 12, 2026</p>
-                    </div>
-                    <span class="text-red-500 font-bold">-$450,000</span>
-                </div>
-                <div class="bg-white p-5 rounded-3xl border border-slate-50 flex justify-between items-center shadow-sm">
-                    <div>
-                        <h5 class="font-bold text-slate-800">Gov. Allocation</h5>
-                        <p class="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">May 10, 2026</p>
-                    </div>
-                    <span class="text-green-500 font-bold">+$1,200,000</span>
-                </div>
-            </div>
-            <button onclick="switchPage('home')" class="w-full mt-8 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Back to Dashboard</button>
-        </div>
-
-        <!-- 14. 现场巡检列表 INSPECT LIST (Level 1) -->
-        <div id="page-upload" class="page">
-            <h2 class="text-2xl font-bold text-slate-800 mb-6">Select Site to Inspect</h2>
-            <div class="space-y-4">
-                <div onclick="switchPage('upload-action')" class="bg-white p-5 rounded-3xl border border-slate-50 flex items-center justify-between shadow-sm btn-active">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-xl">🏗️</div>
-                        <div>
-                            <h4 class="font-bold text-slate-800">Port of Tibar</h4>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">Sector A - Foundation</p>
-                        </div>
-                    </div>
-                    <span class="text-slate-300">❯</span>
-                </div>
-                <div onclick="switchPage('upload-action')" class="bg-white p-5 rounded-3xl border border-slate-50 flex items-center justify-between shadow-sm btn-active">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-xl">🛣️</div>
-                        <div>
-                            <h4 class="font-bold text-slate-800">South Coast Highway</h4>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">Km 14.5 Bridge Work</p>
-                        </div>
-                    </div>
-                    <span class="text-slate-300">❯</span>
-                </div>
-            </div>
-            <button onclick="switchPage('home')" class="w-full mt-8 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Back to Dashboard</button>
-        </div>
-
-        <!-- 15. 拍照上传 ACTION (Level 2) -->
-        <div id="page-upload-action" class="page">
-            <div class="flex items-center gap-4 mb-6">
-                <button onclick="switchPage('upload')" class="text-2xl">←</button>
-                <h2 class="text-2xl font-bold text-slate-800">Site Camera</h2>
-            </div>
-            <div class="bg-slate-900 aspect-[3/4] rounded-[3rem] relative overflow-hidden shadow-2xl mb-6">
-                <!-- 模拟相机画面 -->
-                <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1541888946425-d81bb19480c5?auto=format&fit=crop&w=800&q=80')] bg-cover bg-center opacity-80"></div>
-                
-                <!-- 相机 UI 叠加层 -->
-                <div class="absolute inset-0 flex flex-col justify-between p-8">
-                    <div class="flex justify-between items-start">
-                        <div class="bg-black/40 backdrop-blur px-4 py-2 rounded-2xl text-[10px] text-white font-mono">
-                            GPS: 8.55°S, 125.57°E<br>ALT: 12.4m
-                        </div>
-                        <div class="w-10 h-10 border-2 border-white/50 rounded-full flex items-center justify-center text-white text-xs">HDR</div>
-                    </div>
-                    
-                    <div class="flex flex-col gap-4">
-                        <div class="bg-[#d4af37]/90 px-4 py-2 rounded-xl self-start">
-                            <p class="text-[9px] font-black text-[#0d5c63] uppercase">Security Watermark</p>
-                            <p class="text-xs font-bold text-white">TIMOR-PM // VERIFIED</p>
-                        </div>
-                        <div class="flex justify-around items-center">
-                            <div class="w-12 h-12 bg-white/20 rounded-full border border-white/30"></div>
-                            <button onclick="showToast('Photo Captured!'); switchPage('upload')" class="w-20 h-20 bg-white rounded-full border-[6px] border-white/30 shadow-2xl active:scale-90 transition-transform"></button>
-                            <div class="w-12 h-12 bg-white/20 rounded-full border border-white/30"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <p class="text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">Hold steady for auto-focus</p>
-        </div>
-
-        <!-- 17. 审批列表 APPROVAL LIST (Level 1) -->
-        <div id="page-approval" class="page">
-            <h2 class="text-2xl font-bold text-slate-800 mb-6">Pending Approvals</h2>
-            <div class="space-y-4">
-                <div onclick="switchPage('approval-action')" class="bg-white p-5 rounded-3xl border border-slate-50 flex items-center justify-between shadow-sm btn-active">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-xl">📄</div>
-                        <div>
-                            <h4 class="font-bold text-slate-800">Budget Request #402</h4>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">From: Port Authority</p>
-                        </div>
-                    </div>
-                    <span class="bg-blue-100 text-blue-700 text-[8px] font-black px-2 py-1 rounded-lg">URGENT</span>
-                </div>
-                <div onclick="switchPage('approval-action')" class="bg-white p-5 rounded-3xl border border-slate-50 flex items-center justify-between shadow-sm btn-active">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-xl">👷</div>
-                        <div>
-                            <h4 class="font-bold text-slate-800">Personnel Hire</h4>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">12x Site Engineers</p>
-                        </div>
-                    </div>
-                    <span class="text-slate-300">❯</span>
-                </div>
-            </div>
-            <button onclick="switchPage('home')" class="w-full mt-8 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Back to Dashboard</button>
-        </div>
-
-        <!-- 18. 审批详情 ACTION (Level 2) -->
-        <div id="page-approval-action" class="page">
-             <div class="flex items-center gap-4 mb-6">
-                <button onclick="switchPage('approval')" class="text-2xl">←</button>
-                <h2 class="text-2xl font-bold text-slate-800">Request Review</h2>
-            </div>
-            <div class="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl mb-6 relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
-                
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Reference Code: TL-2026-402</p>
-                <h3 class="text-xl font-bold text-slate-800 mb-6">Additional Dredging Equipment</h3>
-                
-                <div class="space-y-4 mb-8">
-                    <div class="flex justify-between border-b border-slate-50 pb-2">
-                        <span class="text-xs text-slate-400">Project</span>
-                        <span class="text-xs font-bold text-slate-700">Port of Tibar</span>
-                    </div>
-                    <div class="flex justify-between border-b border-slate-50 pb-2">
-                        <span class="text-xs text-slate-400">Amount</span>
-                        <span class="text-xs font-bold text-teal-700">$45,000.00</span>
-                    </div>
-                    <div class="flex justify-between border-b border-slate-50 pb-2">
-                        <span class="text-xs text-slate-400">Requestor</span>
-                        <span class="text-xs font-bold text-slate-700">Eng. José Ramos</span>
-                    </div>
-                </div>
-
-                <div class="bg-slate-50 p-4 rounded-2xl mb-8">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Justification</p>
-                    <p class="text-xs text-slate-600 leading-relaxed italic">"Encountered unexpected coral density at Sector B. Requires specialized cutters to maintain schedule."</p>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <button onclick="showToast('Request Rejected'); switchPage('approval')" class="py-4 bg-slate-100 text-slate-500 rounded-2xl font-bold text-sm btn-active">Reject</button>
-                    <button onclick="showToast('Request Approved'); switchPage('approval')" class="py-4 bg-[#0d5c63] text-white rounded-2xl font-bold text-sm shadow-lg btn-active">Approve</button>
-                </div>
-            </div>
-            <p class="text-center text-[9px] text-slate-300 font-bold uppercase">Digital Signature Required on Next Step</p>
-        </div>
-
-        <!-- 16. GIS 地图总览 GIS MAP -->
-        <div id="page-gis" class="page">
-            <h2 class="text-2xl font-bold text-slate-800 mb-6">Strategic GIS Map</h2>
-            <div class="bg-white p-4 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden mb-6">
-                <!-- 模拟地图背景 -->
-                <div class="w-full aspect-square bg-slate-50 rounded-3xl relative overflow-hidden border border-slate-100">
-                    <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#0d5c63 1px, transparent 1px); background-size: 20px 20px;"></div>
-                    
-                    <!-- 模拟东帝汶地图形状 (SVG) -->
-                    <svg viewBox="0 0 200 100" class="absolute inset-0 w-full h-full opacity-10">
-                        <path d="M20,50 Q40,30 80,40 T140,30 T180,60 T140,80 T80,70 T20,50" fill="#0d5c63" />
-                    </svg>
-
-                    <!-- 地图上的交互点 -->
-                    <div onclick="showToast('Dili: 4 Active Projects')" class="absolute top-[35%] left-[45%] w-6 h-6 flex items-center justify-center btn-active">
-                        <div class="w-3 h-3 bg-teal-600 rounded-full animate-ping opacity-75"></div>
-                        <div class="absolute w-3 h-3 bg-teal-600 rounded-full border-2 border-white shadow-sm"></div>
-                    </div>
-                    <div onclick="showToast('Baucau: 2 Active Projects')" class="absolute top-[30%] left-[65%] w-6 h-6 flex items-center justify-center btn-active">
-                        <div class="w-3 h-3 bg-teal-600 rounded-full border-2 border-white shadow-sm"></div>
-                    </div>
-                    <div onclick="showToast('Suai: 3 Active Projects')" class="absolute top-[70%] left-[30%] w-6 h-6 flex items-center justify-center btn-active">
-                        <div class="w-3 h-3 bg-orange-500 rounded-full border-2 border-white shadow-sm"></div>
-                    </div>
-                    <div onclick="showToast('Oecusse: Special Zone')" class="absolute top-[55%] left-[10%] w-6 h-6 flex items-center justify-center btn-active">
-                        <div class="w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow-sm"></div>
-                    </div>
-
-                    <!-- 图例 -->
-                    <div class="absolute bottom-4 left-4 bg-white/80 backdrop-blur p-3 rounded-2xl border border-slate-100 text-[8px] font-bold space-y-1">
-                        <div class="flex items-center gap-2"><span class="w-2 h-2 bg-teal-600 rounded-full"></span> Infrastructure</div>
-                        <div class="flex items-center gap-2"><span class="w-2 h-2 bg-orange-500 rounded-full"></span> Energy</div>
-                        <div class="flex items-center gap-2"><span class="w-2 h-2 bg-blue-500 rounded-full"></span> Health</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="space-y-3">
-                <div class="bg-white p-5 rounded-3xl border border-slate-50 flex items-center justify-between shadow-sm">
-                    <span class="text-xs font-bold text-slate-700">Display Satellite Imagery</span>
-                    <div class="w-10 h-5 bg-teal-600 rounded-full relative"><div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div></div>
-                </div>
-                <div class="bg-white p-5 rounded-3xl border border-slate-50 flex items-center justify-between shadow-sm">
-                    <span class="text-xs font-bold text-slate-700">Population Heatmap</span>
-                    <div class="w-10 h-5 bg-slate-200 rounded-full relative"><div class="absolute left-1 top-1 w-3 h-3 bg-white rounded-full"></div></div>
-                </div>
-            </div>
-            <button onclick="switchPage('home')" class="w-full mt-6 py-4 bg-white border border-slate-100 rounded-3xl font-bold text-slate-400 btn-active">Back to Dashboard</button>
-        </div>
-
-    </main>
-
-    <!-- 底部固定导航 -->
-    <nav class="fixed bottom-0 left-0 w-full glass border-t border-teal-100/30 flex justify-around items-center px-4 py-3 pb-6 z-40">
-        <button onclick="switchPage('home', this)" class="nav-item active flex flex-col items-center gap-1 transition-all btn-active">
-            <i class="p-2 text-2xl">🏠</i>
-            <span class="text-[9px] font-extrabold uppercase tracking-widest">Home</span>
+        <button id="chat-fab" onclick="showPage('chat-page')">
+            <i class="fas fa-comment-dots"></i>
         </button>
-        <button onclick="switchPage('projects', this)" class="nav-item flex flex-col items-center gap-1 transition-all btn-active">
-            <i class="p-2 text-2xl">📂</i>
-            <span class="text-[9px] font-extrabold uppercase tracking-widest">Registry</span>
-        </button>
-        <button onclick="toggleModal('plus-modal')" class="flex flex-col items-center -mt-10">
-            <div class="w-16 h-16 bg-[#0d5c63] rounded-full border-[6px] border-[#f3f7f7] shadow-xl flex items-center justify-center text-3xl text-white transition-transform active:scale-90">＋</div>
-        </button>
-        <button onclick="switchPage('charts', this)" class="nav-item flex flex-col items-center gap-1 transition-all btn-active">
-            <i class="p-2 text-2xl">📊</i>
-            <span class="text-[9px] font-extrabold uppercase tracking-widest">Data</span>
-        </button>
-        <button onclick="switchPage('settings', this)" class="nav-item flex flex-col items-center gap-1 transition-all btn-active">
-            <i class="p-2 text-2xl">⚙️</i>
-            <span class="text-[9px] font-extrabold uppercase tracking-widest">Menu</span>
-        </button>
-    </nav>
 
-    <!-- 详情视角详情页 (DETAIL VIEW) -->
-    <div id="detail-view">
-        <div class="sticky top-0 glass z-50 p-6 flex items-center justify-between border-b">
-            <button onclick="closeDetail()" class="text-2xl">←</button>
-            <h3 class="font-bold text-slate-800" id="detail-title">Project Detail</h3>
-            <button onclick="showToast('Shared')" class="text-xl">📤</button>
-        </div>
-        <div class="p-6">
-            <div class="bg-white rounded-[2.5rem] p-6 shadow-sm mb-6 border border-teal-50">
-                <div class="flex items-center gap-4 mb-6">
-                    <div class="w-16 h-16 bg-teal-50 rounded-3xl flex items-center justify-center text-4xl">🏗️</div>
-                    <div>
-                        <h2 class="text-xl font-bold text-slate-800" id="detail-name">Port of Tibar</h2>
-                        <span class="text-[10px] font-bold text-teal-600 bg-teal-50 px-3 py-1 rounded-full italic">High Priority</span>
-                    </div>
-                </div>
-                <p class="text-sm text-slate-500 leading-relaxed mb-6">
-                    East Timor's first deep-water port, aimed at enhancing international trade and logistical capabilities for the nation.
-                </p>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-slate-50 p-4 rounded-2xl">
-                        <p class="text-[10px] text-slate-400 font-bold uppercase">Budget Status</p>
-                        <p class="text-lg font-bold text-slate-800 text-teal-700">Healthy</p>
-                    </div>
-                    <div class="bg-slate-50 p-4 rounded-2xl">
-                        <p class="text-[10px] text-slate-400 font-bold uppercase">Main Team</p>
-                        <p class="text-lg font-bold text-slate-800">42 Members</p>
-                    </div>
-                </div>
-            </div>
-
-            <h4 class="font-bold text-slate-800 mb-4">Project Timeline</h4>
-            <div class="space-y-6 relative ml-4 border-l-2 border-teal-100 pl-8 pb-10">
-                <div class="relative">
-                    <div class="absolute -left-[41px] top-0 w-4 h-4 rounded-full bg-teal-600 shadow-lg shadow-teal-200"></div>
-                    <h5 class="text-sm font-bold text-slate-800">Groundbreaking</h5>
-                    <p class="text-xs text-slate-400">January 2024</p>
-                </div>
-                <div class="relative">
-                    <div class="absolute -left-[41px] top-0 w-4 h-4 rounded-full bg-teal-600 shadow-lg shadow-teal-200"></div>
-                    <h5 class="text-sm font-bold text-slate-800">Foundation Complete</h5>
-                    <p class="text-xs text-slate-400">June 2024</p>
-                </div>
-                <div class="relative opacity-30">
-                    <div class="absolute -left-[41px] top-0 w-4 h-4 rounded-full bg-slate-300"></div>
-                    <h5 class="text-sm font-bold text-slate-800">Grand Opening</h5>
-                    <p class="text-xs text-slate-400">Estimated Dec 2025</p>
-                </div>
-            </div>
-            
-            <button onclick="showToast('Approval Sent')" class="w-full bg-[#0d5c63] text-white font-bold py-5 rounded-3xl shadow-xl active:scale-95 transition-transform">✅ Approve Next Milestone</button>
-        </div>
-    </div>
-
-    <!-- 各类弹窗层 -->
-    <div id="modal-overlay" class="fixed inset-0 bg-black/60 z-50 hidden backdrop-blur-sm transition-all" onclick="closeAllModals()"></div>
-    
-    <!-- 加号快捷菜单 -->
-    <div id="plus-modal" class="fixed bottom-24 left-1/2 -translate-x-1/2 w-[85%] bg-white rounded-[3rem] p-8 z-[60] hidden shadow-2xl animate-pageFadeIn">
-        <h3 class="text-center font-bold text-slate-800 mb-6 italic underline">TimorPM Quick Entry</h3>
-        <div class="grid grid-cols-2 gap-4">
-            <button onclick="switchPage('new-project')" class="flex flex-col items-center gap-2 p-4 bg-teal-50 rounded-[2rem] btn-active">
-                <span class="text-3xl">📁</span><span class="text-[10px] font-bold uppercase">Project</span>
+        <div class="bottom-actions">
+            <button class="btn btn-outline" id="simulateEventBtn">
+                <i class="fas fa-bolt"></i> Anomaly Spike
             </button>
-            <button onclick="switchPage('upload')" class="flex flex-col items-center gap-2 p-4 bg-orange-50 rounded-[2rem] btn-active">
-                <span class="text-3xl">📸</span><span class="text-[10px] font-bold uppercase">Inspection</span>
-            </button>
-            <button onclick="switchPage('approval')" class="flex flex-col items-center gap-2 p-4 bg-blue-50 rounded-[2rem] btn-active">
-                <span class="text-3xl">⚖️</span><span class="text-[10px] font-bold uppercase">Approval</span>
-            </button>
-            <button onclick="switchPage('risks')" class="flex flex-col items-center gap-2 p-4 bg-red-50 rounded-[2rem] btn-active">
-                <span class="text-3xl">🚨</span><span class="text-[10px] font-bold uppercase">Risks</span>
+            <button class="btn btn-primary" id="applyOptBtn">
+                <i class="fas fa-wand-magic-sparkles"></i> Execute Collab
             </button>
         </div>
     </div>
 
-    <!-- 通知模态框 -->
-    <div id="notif-modal" class="fixed top-20 right-6 w-[70%] bg-white rounded-[2rem] p-6 z-[60] hidden shadow-2xl animate-pageFadeIn border border-teal-50">
-        <h4 class="font-bold text-slate-800 mb-4 flex justify-between">Recent <span>🔔</span></h4>
-        <div class="space-y-4">
-            <div class="border-b pb-2"><p class="text-xs font-bold text-teal-800">Budget Approved</p><p class="text-[9px] text-slate-400">2 hours ago</p></div>
-            <div class="border-b pb-2"><p class="text-xs font-bold text-orange-800">Deadline Warning</p><p class="text-[9px] text-slate-400">Yesterday</p></div>
+    <!-- Secondary Page: AI Chat -->
+    <div id="chat-page" class="page hidden">
+        <div class="sub-header">
+            <button class="back-btn" onclick="hidePage()"><i class="fas fa-chevron-left"></i></button>
+            <span class="sub-title">Chat with TimorGAPAgent</span>
+        </div>
+        <div id="chat-container">
+            <div id="message-list">
+                <div class="message agent">Welcome to TimorGAPAgent Intelligence Hub. System status: All agents online.</div>
+                <div class="message user">Summarize the anomaly detected earlier in P1 cluster.</div>
+                <div class="message agent">At 09:34 AM, Perception Agent detected a 4.25 MPa pressure spike in P1 Producer. Diagnosis Agent identified a transient gas lock risk. Collaborative intervention was executed, and pressure stabilized at 2.95 MPa within 120 seconds.</div>
+                <div class="message user">What is the expected production gain after the optimization?</div>
+                <div class="message agent">The current RL-based strategy predicts a 5.2% increase in net oil recovery for the P1-W1 cluster over the next 24 hours.</div>
+                <div class="message agent">How can I assist you further today?</div>
+            </div>
+            <div id="chat-input-bar">
+                <input type="text" id="chat-input" placeholder="Type a message..." onkeypress="if(event.keyCode==13) sendMessage()">
+                <button id="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+            </div>
         </div>
     </div>
 
-    <!-- 轻提示 (Toast) -->
-    <div id="toast" class="fixed top-24 left-1/2 -translate-x-1/2 glass px-6 py-3 rounded-2xl text-[10px] font-bold text-[#0d5c63] border border-teal-500 shadow-xl opacity-0 transition-all z-[200] pointer-events-none tracking-widest uppercase">
-        Action Completed
+    <!-- Secondary Page: Well Details -->
+    <div id="well-page" class="page hidden">
+        <div class="sub-header">
+            <button class="back-btn" onclick="hidePage()"><i class="fas fa-chevron-left"></i></button>
+            <span class="sub-title">Wellbore Report</span>
+        </div>
+        <div class="delivery-content">
+            <div class="delivery-header">
+                <h2 id="subWellName" style="font-size: 20px; font-weight: 800;">P1 Producer</h2>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <span class="status-pill">Active</span>
+                    <span class="tag-agent" style="background: #f8fafc; color: #64748b;">ID: W-10024</span>
+                </div>
+            </div>
+            <div class="card" onclick="showPage('sensor-history-page', {name: document.getElementById('subWellName').innerText})" style="cursor: pointer;">
+                <div class="card-title">Live Diagnostics <i class="fas fa-chevron-right" style="font-size: 12px; color: #cbd5e1;"></i></div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div><span style="font-size: 11px; color: #94a3b8;">Pressure</span><br><strong style="font-size: 18px;">2.95 MPa</strong></div>
+                    <div><span style="font-size: 11px; color: #94a3b8;">Temperature</span><br><strong style="font-size: 18px;">78.2 °C</strong></div>
+                    <div><span style="font-size: 11px; color: #94a3b8;">Pump Efficiency</span><br><strong style="font-size: 18px;">84.5%</strong></div>
+                    <div><span style="font-size: 11px; color: #94a3b8;">Vibration</span><br><strong style="font-size: 18px; color: var(--safe-green);">Normal</strong></div>
+                </div>
+                <p style="font-size: 10px; color: var(--primary-teal); margin-top: 12px; font-weight: 700;">View Level 3: Historical Sensor Data</p>
+            </div>
+            <div class="card">
+                <div class="card-title">Intervention History</div>
+                <div class="log-item">
+                    <div class="log-time">09:45 AM</div>
+                    <div class="log-msg">Diagnosis Agent: Optimized pump speed to 45Hz.</div>
+                </div>
+                <div class="log-item">
+                    <div class="log-time">08:12 AM</div>
+                    <div class="log-msg">System: Routine data sync completed.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Page: Agent Intelligence -->
+    <div id="agent-page" class="page hidden">
+        <div class="sub-header">
+            <button class="back-btn" onclick="hidePage()"><i class="fas fa-chevron-left"></i></button>
+            <span class="sub-title">Agent Intelligence</span>
+        </div>
+        <div class="delivery-content">
+            <div class="delivery-header" style="background: var(--primary-navy); color: white;">
+                <div id="subAgentIcon" style="font-size: 32px; margin-bottom: 12px;"><i class="fas fa-brain"></i></div>
+                <h2 id="subAgentName" style="font-size: 20px; font-weight: 800;">Decision Agent</h2>
+                <p id="subAgentTask" style="font-size: 13px; opacity: 0.8; margin-top: 4px;">Optimizing injection-production balance.</p>
+            </div>
+            <div class="card" onclick="showPage('trace-page', {name: document.getElementById('subAgentName').innerText})" style="cursor: pointer;">
+                <div class="card-title">Reasoning Log (LLM Output) <i class="fas fa-chevron-right" style="font-size: 12px; color: #cbd5e1;"></i></div>
+                <div style="background: #f8fafc; padding: 16px; border-radius: 16px; font-size: 13px; font-family: monospace; color: #334155;">
+                    > ANALYZING P1 PRESSURE DATA...<br>
+                    > DETECTED SUBTLE DECLINE IN PUMP EFFICIENCY.<br>
+                    > CORRELATING WITH INJECTOR W1 DATA...<br>
+                    > RECOMMENDATION: INCREASE INJECTION BY 2.4%.<br>
+                    > CONFIDENCE: 94.2%
+                </div>
+                <p style="font-size: 10px; color: var(--primary-teal); margin-top: 12px; font-weight: 700;">View Level 3: Deep Reasoning Trace</p>
+            </div>
+            <div class="card">
+                <div class="card-title">Resource Usage</div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 14px;">Tokens Consumed (Today)</span>
+                    <strong style="color: var(--primary-teal);">12,450</strong>
+                </div>
+                <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; margin-top: 10px;">
+                    <div style="width: 45%; height: 100%; background: var(--primary-teal); border-radius: 3px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Page: Carbon / Security -->
+    <div id="carbon-page" class="page hidden">
+        <div class="sub-header">
+            <button class="back-btn" onclick="hidePage()"><i class="fas fa-chevron-left"></i></button>
+            <span class="sub-title">ESG Delivery Report</span>
+        </div>
+        <div class="delivery-content">
+            <div class="card" style="background: #f0fdf4;">
+                <h3 style="color: #166534; margin-bottom: 10px;">Carbon Neutrality Score: A+</h3>
+                <p style="font-size: 12px; color: #166534;">Your asset is currently performing better than 85% of regional benchmarks.</p>
+            </div>
+            <div class="card" onclick="showPage('offset-page')" style="cursor: pointer;">
+                <div class="card-title">Emission Breakdown <i class="fas fa-chevron-right" style="font-size: 12px; color: #cbd5e1;"></i></div>
+                <div style="height: 200px; display: flex; align-items: flex-end; gap: 20px; padding: 20px 0;">
+                    <div style="flex:1; background: #e2e8f0; height: 80%; border-radius: 8px 8px 0 0; text-align: center;"><span style="font-size: 9px; position: absolute; bottom: -20px;">Direct</span></div>
+                    <div style="flex:1; background: #cbd5e1; height: 40%; border-radius: 8px 8px 0 0; text-align: center;"><span style="font-size: 9px; position: absolute; bottom: -20px;">Indirect</span></div>
+                    <div style="flex:1; background: var(--primary-teal); height: 20%; border-radius: 8px 8px 0 0; text-align: center;"><span style="font-size: 9px; position: absolute; bottom: -20px;">Offset</span></div>
+                </div>
+                <p style="font-size: 10px; color: var(--primary-teal); margin-top: 12px; font-weight: 700;">View Level 3: Carbon Offset Marketplace</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="security-page" class="page hidden">
+        <div class="sub-header">
+            <button class="back-btn" onclick="hidePage()"><i class="fas fa-chevron-left"></i></button>
+            <span class="sub-title">Security Audit</span>
+        </div>
+        <div class="delivery-content">
+            <div class="card" style="border-left: 6px solid var(--safe-green);">
+                <div class="card-title">Network Integrity</div>
+                <p style="font-size: 14px; font-weight: 600; color: var(--safe-green);"><i class="fas fa-check-circle"></i> All Gateways Secure</p>
+            </div>
+            <div class="card">
+                <div class="card-title">Threat Intelligence Log</div>
+                <div class="log-item">
+                    <div class="log-time">Just Now</div>
+                    <div class="log-msg">Zero-Trust Auth: User 'TimorAdmin' authorized from Verified IP.</div>
+                </div>
+                <div class="log-item">
+                    <div class="log-time">1 hour ago</div>
+                    <div class="log-msg">Anomaly detection: Port 443 scan blocked (Origin: Unknown).</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW LEVEL 2: Performance Analytics -->
+    <div id="performance-page" class="page hidden">
+        <div class="sub-header">
+            <button class="back-btn" onclick="hidePage()"><i class="fas fa-chevron-left"></i></button>
+            <span class="sub-title">Performance Analytics</span>
+        </div>
+        <div class="delivery-content">
+            <div class="card">
+                <div class="card-title">Asset Throughput</div>
+                <div id="performanceChart" style="height: 200px;"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Optimization Metrics</div>
+                <div class="log-item">
+                    <div class="log-time">Efficiency Gain</div>
+                    <div class="log-msg">+4.2% (Compared to Manual Baseline)</div>
+                </div>
+                <div class="log-item">
+                    <div class="log-time">Downtime Reduction</div>
+                    <div class="log-msg">14.5 Hours Saved (Last 30 Days)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW LEVEL 3: Sensor History -->
+    <div id="sensor-history-page" class="page hidden">
+        <div class="sub-header">
+            <button class="back-btn" onclick="hidePage()"><i class="fas fa-chevron-left"></i></button>
+            <span class="sub-title">Historical Sensor Data</span>
+        </div>
+        <div class="delivery-content">
+            <div class="delivery-header">
+                <h2 id="sensorWellName" style="font-size: 20px; font-weight: 800;">P1 Producer</h2>
+                <p style="font-size: 12px; color: #64748b;">30-Day Pressure Trend (MPa)</p>
+            </div>
+            <div class="card">
+                <div id="historyChart" style="height: 250px;"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">Raw Logs</div>
+                <div style="font-size: 11px; font-family: monospace; line-height: 2;">
+                    2026-05-17 09:30: 2.86 MPa<br>
+                    2026-05-17 09:00: 2.85 MPa<br>
+                    2026-05-17 08:30: 2.88 MPa<br>
+                    2026-05-17 08:00: 2.84 MPa
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW LEVEL 3: Reasoning Trace -->
+    <div id="trace-page" class="page hidden">
+        <div class="sub-header">
+            <button class="back-btn" onclick="hidePage()"><i class="fas fa-chevron-left"></i></button>
+            <span class="sub-title">Agent Logic Trace</span>
+        </div>
+        <div class="delivery-content">
+            <div class="delivery-header">
+                <h2 id="traceAgentName" style="font-size: 20px; font-weight: 800;">Decision Agent</h2>
+                <p style="font-size: 12px; color: #64748b;">Full reasoning chain for Task #2934</p>
+            </div>
+            <div class="card">
+                <div class="log-item">
+                    <div class="log-time">Phase 1: Input Analysis</div>
+                    <div class="log-msg">Retrieved pressure (2.86) and temperature (78) from Perception Agent.</div>
+                </div>
+                <div class="log-item">
+                    <div class="log-time">Phase 2: Pattern Match</div>
+                    <div class="log-msg">Cross-referenced with Reservoir Model #04. Confidence: 98%.</div>
+                </div>
+                <div class="log-item">
+                    <div class="log-time">Phase 3: Decision Gen</div>
+                    <div class="log-msg">Selected Strategy: 'Dynamic Injection Balancing'.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW LEVEL 3: Carbon Offset -->
+    <div id="offset-page" class="page hidden">
+        <div class="sub-header">
+            <button class="back-btn" onclick="hidePage()"><i class="fas fa-chevron-left"></i></button>
+            <span class="sub-title">Carbon Offset Marketplace</span>
+        </div>
+        <div class="delivery-content">
+            <div class="card">
+                <div class="card-title">Available Projects</div>
+                <div class="well-item">
+                    <div class="well-top"><span class="well-name">Timor Reforestation</span> <span class="status-pill">Active</span></div>
+                    <p style="font-size: 11px; color: #64748b;">$12.50 / tCO₂e - Verra Certified</p>
+                </div>
+                <div class="well-item">
+                    <div class="well-top"><span class="well-name">Coastal Mangroves</span> <span class="status-pill">Premium</span></div>
+                    <p style="font-size: 11px; color: #64748b;">$18.00 / tCO₂e - Gold Standard</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // --- 核心路由系统 ---
-        function switchPage(pageId, el) {
-            // 关闭所有弹窗
-            closeAllModals();
+        // ---------- Data & State ----------
+        let wellsData = [
+            { id: "W1", name: "P1 Producer", oil: "32.4", pres: "2.86", temp: "78", status: "Normal", type: "normal" },
+            { id: "W2", name: "P2 Producer", oil: "28.1", pres: "3.12", temp: "81", status: "Normal", type: "normal" },
+            { id: "W3", name: "P3 Producer", oil: "24.7", pres: "1.95", temp: "76", status: "Steady", type: "normal" },
+            { id: "W4", name: "W1 Injector", oil: "112.5", pres: "18.4", temp: "55", status: "Online", type: "normal" }
+        ];
 
-            // 切换显隐
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById('page-' + pageId).classList.add('active');
+        let agentsData = [
+            { name: "Perception Agent", task: "Analyzing high-res sensor streams", icon: "fa-eye", active: true },
+            { name: "Diagnosis Agent", task: "Detecting pump efficiency trends", icon: "fa-stethoscope", active: true },
+            { name: "Decision Agent", task: "Optimizing multi-well production", icon: "fa-brain", active: true },
+            { name: "Safety Agent", task: "Monitoring structural integrity", icon: "fa-shield-halved", active: false }
+        ];
 
-            // 底部导航状态
-            if (el) {
-                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-                el.classList.add('active');
-            }
+        let activePageId = 'dashboard';
+        let navStack = ['dashboard'];
 
-            // 振动反馈 (如果支持)
-            if(window.navigator.vibrate) window.navigator.vibrate(10);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        // ---------- AI Chat Logic ----------
+        const chatResponses = [
+            "Analyzing wellbore telemetry data...",
+            "I've cross-referenced P1 and P2 production rates. Efficiency is stable.",
+            "Detection Agent reporting: No structural anomalies detected in the last 24 hours.",
+            "Would you like me to generate a collaborative optimization plan for the W1 injection cluster?",
+            "P3 pump efficiency is at 84.5%. No immediate intervention required.",
+            "The ESG audit is complete. Your current carbon footprint is trending 2% lower than last month."
+        ];
 
-        // --- 任务切换逻辑 ---
-        function toggleTask(el) {
-            el.classList.toggle('opacity-50');
-            const circle = el.querySelector('.check-circle');
-            if (el.classList.contains('opacity-50')) {
-                circle.innerHTML = '✓';
-                circle.classList.add('bg-teal-500', 'border-teal-500', 'flex', 'items-center', 'justify-center', 'text-white', 'text-[10px]');
-                showToast('Task Done!');
-            } else {
-                circle.innerHTML = '';
-                circle.classList.remove('bg-teal-500', 'border-teal-500', 'flex', 'items-center', 'justify-center', 'text-white', 'text-[10px]');
-            }
-        }
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
 
-        // --- 详情页逻辑 ---
-        function openDetail(name) {
-            document.getElementById('detail-name').innerText = name;
-            document.getElementById('detail-view').classList.add('open');
-            document.body.style.overflow = 'hidden'; // 禁止底页滚动
-        }
+            addMessage(text, 'user');
+            input.value = '';
 
-        function closeDetail() {
-            document.getElementById('detail-view').classList.remove('open');
-            document.body.style.overflow = 'auto';
-        }
-
-        // --- 弹窗控制器 ---
-        function toggleModal(id) {
-            const modal = document.getElementById(id);
-            const overlay = document.getElementById('modal-overlay');
-            const isHidden = modal.classList.contains('hidden');
-            
-            closeAllModals(); // 先关掉所有其他的
-
-            if (isHidden) {
-                modal.classList.remove('hidden');
-                overlay.classList.remove('hidden');
-            }
-        }
-
-        function closeAllModals() {
-            document.getElementById('plus-modal').classList.add('hidden');
-            document.getElementById('notif-modal').classList.add('hidden');
-            document.getElementById('modal-overlay').classList.add('hidden');
-        }
-
-        // --- 轻提示 ---
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.style.opacity = '1';
-            t.style.transform = 'translate(-50%, -20px)';
+            // Simulate Agent Response
             setTimeout(() => {
-                t.style.opacity = '0';
-                t.style.transform = 'translate(-50%, 0)';
-            }, 2000);
+                const typing = document.createElement('div');
+                typing.className = 'typing-indicator';
+                typing.id = 'typing';
+                typing.innerText = 'TimorGAPAgent is thinking...';
+                document.getElementById('message-list').appendChild(typing);
+                scrollChat();
+
+                setTimeout(() => {
+                    const typingEl = document.getElementById('typing');
+                    if (typingEl) typingEl.remove();
+                    const randomReply = chatResponses[Math.floor(Math.random() * chatResponses.length)];
+                    addMessage(randomReply, 'agent');
+                }, 1500);
+            }, 500);
         }
 
-        // 模拟背景加载
-        window.onload = () => {
-            console.log('✅ TimorPM Delivery Package Ready');
-            showToast('System Ready');
+        function addMessage(text, side) {
+            const list = document.getElementById('message-list');
+            const msg = document.createElement('div');
+            msg.className = `message ${side}`;
+            msg.innerText = text;
+            list.appendChild(msg);
+            scrollChat();
         }
+
+        function scrollChat() {
+            const list = document.getElementById('message-list');
+            list.scrollTop = list.scrollHeight;
+        }
+
+        // ---------- SPA Navigation ----------
+        function showPage(pageId, data = null) {
+            const page = document.getElementById(pageId);
+            if (!page) return;
+            
+            // Populate data if needed
+            if (pageId === 'well-page' && data) {
+                document.getElementById('subWellName').innerText = data.name;
+            } else if (pageId === 'agent-page' && data) {
+                document.getElementById('subAgentName').innerText = data.name;
+                document.getElementById('subAgentTask').innerText = data.task;
+                document.getElementById('subAgentIcon').innerHTML = `<i class="fas ${data.icon}"></i>`;
+            } else if (pageId === 'sensor-history-page' && data) {
+                document.getElementById('sensorWellName').innerText = data.name;
+                setTimeout(initHistoryChart, 100);
+            } else if (pageId === 'trace-page' && data) {
+                document.getElementById('traceAgentName').innerText = data.name;
+            } else if (pageId === 'performance-page') {
+                setTimeout(initPerformanceChart, 100);
+            }
+
+            page.classList.remove('hidden');
+            page.classList.add('active');
+            navStack.push(pageId);
+            activePageId = pageId;
+            window.scrollTo(0, 0);
+        }
+
+        function hidePage() {
+            if (navStack.length > 1) {
+                const currentPageId = navStack.pop();
+                const currentPage = document.getElementById(currentPageId);
+                currentPage.classList.add('hidden');
+                currentPage.classList.remove('active');
+                activePageId = navStack[navStack.length - 1];
+            }
+        }
+
+        // ---------- Rendering ----------
+        function render() {
+            // Wells
+            const wellBox = document.getElementById('wellList');
+            wellBox.innerHTML = wellsData.map(w => `
+                <div class="well-item" onclick="showPage('well-page', {name: '${w.name}'})">
+                    <div class="well-top">
+                        <span class="well-name">${w.name}</span>
+                        <span class="status-pill ${w.type === 'warning' ? 'warning' : ''}">${w.status}</span>
+                    </div>
+                    <div class="well-metrics">
+                        <div>Rate <strong>${w.oil} m³/d</strong></div>
+                        <div>Pres <strong>${w.pres} MPa</strong></div>
+                        <div>Temp <strong>${w.temp} °C</strong></div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Agents
+            const agentBox = document.getElementById('agentTaskList');
+            agentBox.innerHTML = agentsData.map(a => `
+                <div class="agent-item" onclick="showPage('agent-page', {name: '${a.name}', task: '${a.task}', icon: '${a.icon}'})">
+                    <div class="agent-avatar ${a.active ? '' : 'idle'}">
+                        <i class="fas ${a.icon}"></i>
+                    </div>
+                    <div class="agent-info">
+                        <h4>${a.name}</h4>
+                        <p>${a.task}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('wellCount').innerText = wellsData.length;
+            document.getElementById('activeAgentsCount').innerText = agentsData.filter(a => a.active).length;
+            document.getElementById('alertsCount').innerText = wellsData.filter(w => w.type === 'warning').length;
+        }
+
+        // ---------- ECharts ----------
+        let chart;
+        function initChart() {
+            chart = echarts.init(document.getElementById('sequenceChart'));
+            const option = {
+                grid: { left: '4%', right: '10%', bottom: '5%', top: '10%', containLabel: true },
+                xAxis: { type: 'time', splitLine: { show: false }, axisLabel: { fontSize: 10 } },
+                yAxis: { 
+                    type: 'category', 
+                    data: ['Sensor', 'Brain', 'Decision', 'Execution'],
+                    axisLine: { show: false }, axisTick: { show: false }, axisLabel: { fontSize: 11, fontWeight: 700 }
+                },
+                series: [{
+                    type: 'scatter', symbolSize: 18, itemStyle: { color: '#1b7e6b' },
+                    label: { show: true, position: 'right', fontSize: 10, fontWeight: 700, formatter: '{b}' },
+                    data: [
+                        { value: [Date.now() - 300000, 'Sensor'], name: 'Telemetry' },
+                        { value: [Date.now() - 240000, 'Brain'], name: 'Diagnosis' },
+                        { value: [Date.now() - 120000, 'Decision'], name: 'Plan Gen' },
+                        { value: [Date.now(), 'Execution'], name: 'Closed-loop' }
+                    ]
+                }, {
+                    type: 'line', smooth: true, lineStyle: { width: 2, type: 'dashed', color: '#cbd5e1' },
+                    data: [
+                        [Date.now() - 300000, 'Sensor'],
+                        [Date.now() - 240000, 'Brain'],
+                        [Date.now() - 120000, 'Decision'],
+                        [Date.now(), 'Execution']
+                    ]
+                }]
+            };
+            chart.setOption(option);
+        }
+
+        function initPerformanceChart() {
+            const pChart = echarts.init(document.getElementById('performanceChart'));
+            pChart.setOption({
+                tooltip: { trigger: 'axis' },
+                xAxis: { type: 'category', data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] },
+                yAxis: { type: 'value' },
+                series: [{
+                    data: [1200, 1220, 1215, 1240, 1235, 1250, 1245],
+                    type: 'line',
+                    smooth: true,
+                    areaStyle: { color: 'rgba(27, 126, 107, 0.2)' },
+                    itemStyle: { color: 'var(--primary-teal)' }
+                }]
+            });
+        }
+
+        function initHistoryChart() {
+            const hChart = echarts.init(document.getElementById('historyChart'));
+            hChart.setOption({
+                xAxis: { type: 'category', data: ['08:00', '08:30', '09:00', '09:30', '10:00'] },
+                yAxis: { type: 'value', min: 2.8 },
+                series: [{
+                    data: [2.84, 2.88, 2.85, 2.86, 2.87],
+                    type: 'bar',
+                    itemStyle: { color: 'var(--primary-navy)' }
+                }]
+            });
+        }
+
+        // ---------- Anomaly Simulation ----------
+        function simulateAnomaly() {
+            // Well Spike
+            wellsData[0].pres = "4.25";
+            wellsData[0].status = "Spike Warning";
+            wellsData[0].type = "warning";
+
+            // Agents Activate
+            agentsData[1].task = "CRITICAL: Analyzing high-pressure spike root cause...";
+            agentsData[2].task = "Calculating production inhibition strategy";
+            agentsData[3].active = true;
+            agentsData[3].task = "Sentinel: Monitoring pipeline surge risks";
+
+            render();
+            
+            chart.setOption({
+                series: [{ 
+                    data: [
+                        { value: [Date.now() - 10000, 'Sensor'], name: 'CRITICAL', itemStyle: {color: '#ef4444'} },
+                        { value: [Date.now() - 5000, 'Brain'], name: 'Anomaly Detected' },
+                        { value: [Date.now(), 'Execution'], name: 'Auto Intervention' }
+                    ]
+                }]
+            });
+
+            document.querySelector('.h5-header').style.background = 'linear-gradient(135deg, #7f1d1d, #ef4444)';
+            document.getElementById('applyOptBtn').classList.add('pulse');
+        }
+
+        function applyOptimization() {
+            wellsData[0].pres = "2.95";
+            wellsData[0].status = "Steady";
+            wellsData[0].type = "normal";
+
+            agentsData.forEach(a => a.active = true);
+            agentsData[2].task = "Production optimized. Efficiency +4.8%";
+            
+            render();
+            document.querySelector('.h5-header').style.background = 'linear-gradient(135deg, var(--primary-navy), var(--primary-teal))';
+            document.getElementById('applyOptBtn').classList.remove('pulse');
+            initChart();
+
+            // Success Toast
+            const toast = document.createElement('div');
+            toast.style = "position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); color:white; padding:12px 24px; border-radius:32px; font-size:13px; z-index:1000; font-weight:700;";
+            toast.innerText = "✓ Multi-Agent Collaboration Executed Successfully";
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
+        }
+
+        // ---------- Init ----------
+        document.addEventListener('DOMContentLoaded', () => {
+            render();
+            initChart();
+            document.getElementById('simulateEventBtn').onclick = simulateAnomaly;
+            document.getElementById('applyOptBtn').onclick = applyOptimization;
+            window.addEventListener('resize', () => chart && chart.resize());
+        });
     </script>
 </body>
 </html>
